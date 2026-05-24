@@ -1,38 +1,127 @@
-# CLAUDE.md
+# fuelplan (frontend) — Agent CLAUDE.md
 
-This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+Stack-specific context for the frontend agent. You work in this repo (`fuelplan/`) only.
 
-## Commands
+> **First:** read `../fuelplan-shared/CLAUDE.md` for cross-cutting orientation and hard rules. They apply here too — this file doesn't repeat them.
 
-```bash
-pnpm dev          # start dev server (http://localhost:5173)
-pnpm build        # tsc -b && vite build → dist/
-pnpm lint         # eslint
-pnpm preview      # serve dist/ locally
+## Stack
+
+- React 18 + Vite
+- Supabase JS SDK (`@supabase/supabase-js`) for auth + DB reads
+- Stripe.js (`@stripe/stripe-js`) for checkout redirects only — never handle card data directly
+- React Router for routing
+- Plain CSS modules or Tailwind (pick one early — see `../fuelplan-shared/decisions/`)
+- Deployed to GitHub Pages via Actions
+
+## Folder structure
+
+```
+fuelplan/
+├── public/
+│   └── 404.html              # GitHub Pages SPA fallback — see "Routing gotcha"
+├── src/
+│   ├── lib/
+│   │   ├── supabase.js       # Singleton Supabase client
+│   │   └── api.js            # Wrapper around fetch() that auto-attaches JWT
+│   ├── hooks/
+│   │   ├── useAuth.js        # Current session + user
+│   │   └── useSubscription.js
+│   ├── routes/
+│   │   ├── ProtectedRoute.jsx
+│   │   └── PublicOnlyRoute.jsx
+│   ├── pages/
+│   │   ├── Landing.jsx
+│   │   ├── SignIn.jsx
+│   │   ├── Dashboard.jsx
+│   │   ├── NewPlan.jsx       # GPX upload + form
+│   │   ├── Plan.jsx          # Plan viewer
+│   │   └── Pricing.jsx
+│   ├── components/
+│   ├── App.jsx
+│   └── main.jsx
+├── .claude/
+│   └── skills/               # Frontend-specific patterns
+├── CLAUDE.md                 # This file
+├── WIP.md                    # Session handoff
+├── .env                      # local only — gitignored
+└── vite.config.js
 ```
 
-No test runner is configured yet.
+## Hard rules — frontend-specific
 
-## Architecture
+(In addition to the cross-cutting rules in `../fuelplan-shared/CLAUDE.md`.)
 
-See `ARCHITECTURE.md` for the full stack picture and `PLAN.md` for the phased implementation roadmap.
+1. **Only `VITE_*` env vars are accessible from frontend code.** Anything else is undefined at runtime.
+2. **Never reference `SUPABASE_SERVICE_ROLE_KEY` anywhere.** If you ever feel you need to, stop — the answer is a backend route, not a workaround.
+3. **All writes to `profiles`, `plans` go through backend routes**, not the Supabase client. The client is for auth + reads only. (RLS would block writes anyway but keep code consistent.)
+4. **`subscriptions` and `plan_credits` are read-only from the frontend.** Display them, never mutate.
+5. **No `dangerouslySetInnerHTML`** on anything derived from user input or AI output, ever. The plan JSON renders into structured components.
+6. **No `localStorage` for auth tokens.** Supabase SDK handles session storage — don't second-guess it.
 
-This is the **frontend** half of FuelPlan. The backend lives at `/Users/prln255/fuelplan-be`.
+## Patterns
 
-### Data flow
+### Supabase client (singleton)
+```js
+// src/lib/supabase.js
+import { createClient } from '@supabase/supabase-js'
 
-- All reads go directly from the browser to Supabase (anon key, RLS-enforced) via TanStack Query.
-- The **only** route that hits the Express backend (`VITE_API_URL`) is plan generation and Stripe checkout — everything else is Supabase-direct.
-- JWT is attached to backend requests manually as `Authorization: Bearer <token>` (retrieved from `supabase.auth.getSession()`).
+export const supabase = createClient(
+  import.meta.env.VITE_SUPABASE_URL,
+  import.meta.env.VITE_SUPABASE_ANON_KEY
+)
+```
 
-### Key conventions
+### Auth state (hook)
+```js
+// src/hooks/useAuth.js
+import { useEffect, useState } from 'react'
+import { supabase } from '../lib/supabase'
 
-- **Types**: snake_case interfaces for DB rows (suffix `Row`), camelCase for mapped domain types. Mappers live in `src/lib/`.
-- **Auth gate**: wrap protected routes in `<RequireAuth>` from `src/components/RequireAuth.tsx`. It checks the Supabase session and redirects to `/login` if absent.
-- **Styling**: Tailwind v4 — import via `@import "tailwindcss"` in `index.css`, no config file needed. The Tailwind Vite plugin is used (not PostCSS).
-- **Toasts**: `react-hot-toast` with a single `<Toaster>` in `App.tsx`. Success toasts on user-visible actions; errors shown inline.
-- **Queries**: TanStack Query v5 — one `QueryClient` in `App.tsx`, data fetched with `useQuery` / `useMutation` in page components or custom hooks under `src/lib/`.
+export function useAuth() {
+  const [session, setSession] = useState(null)
+  const [loading, setLoading] = useState(true)
 
-### Access control (subscription tiers)
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data }) => {
+      setSession(data.session)
+      setLoading(false)
+    })
+    const { data: sub } = supabase.auth.onAuthStateChange((_e, s) => setSession(s))
+    return () => sub.subscription.unsubscribe()
+  }, [])
 
-The backend `checkAccess` middleware is the gate — never gate on the frontend alone. Tiers: Free (1 plan/month), Pro (unlimited, `status=active`), Pay-per-plan (`credits > 0`). State lives in `subscriptions` and `plan_credits` tables.
+  return { session, user: session?.user ?? null, loading }
+}
+```
+
+### Calling the backend
+Always use the `api` wrapper from `.claude/skills/api-client/`. It auto-attaches the JWT and unifies error handling. Never call `fetch()` directly to our API.
+
+## Routing gotcha — GitHub Pages
+
+GitHub Pages returns 404 on hard refresh for any route other than `/`. Two fixes, both required:
+
+1. **`public/404.html`** redirects back to the app — see `../fuelplan-shared/architecture.md` for the snippet.
+2. **`vite.config.js`** — if deploying under a repo subdirectory, set `base: '/repo-name/'`. With a custom domain at root, omit `base`. We're using a custom domain — leave `base` unset unless that changes.
+
+## Common mistakes to avoid
+
+- **Stripe price IDs hardcoded in frontend.** Don't. Backend picks the right price based on a product key. Prices change; rebuilding the frontend each time is bad.
+- **Calling Supabase directly to check subscription status.** RLS lets you read your own row, but the source of truth for "can this user generate a plan" is the backend `/api/can-generate` endpoint.
+- **Building protected routes with `useEffect` redirects.** Use the `ProtectedRoute` wrapper component — see `protected-route` skill. `useEffect` redirects flash protected content for one frame.
+- **Importing `recharts`/`d3`/big libs without checking bundle size.** GitHub Pages serves the bundle to athletes on phones in race week. Stay lean.
+
+## Skills available
+
+- `.claude/skills/api-client/` — the `api.js` wrapper, JWT handling, error shape
+- `.claude/skills/protected-route/` — auth-gated routing pattern
+- `.claude/skills/stripe-checkout/` — checkout button → backend session → redirect flow
+
+Read the relevant `SKILL.md` before implementing.
+
+## Build & deploy
+
+- `npm run dev` — local dev
+- `npm run build` — produces `dist/`
+- GitHub Actions auto-deploys on push to `main` (see `../fuelplan-shared/architecture.md` for the workflow)
+- All `VITE_*` env vars must be set as GitHub Secrets — listed in `architecture.md`
