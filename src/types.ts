@@ -1,11 +1,34 @@
 // ── DB row types (snake_case, mirrors Supabase schema) ──────────────────────
 
+export type Discipline = 'cycling' | 'running';
+export type Sex = 'female' | 'male' | 'other' | 'prefer_not_to_say';
+export type SweatRate = 'low' | 'medium' | 'high';
+export type CaffeineTolerance = 'none' | 'low' | 'high';
+export type FuelForm = 'gels' | 'chews' | 'bars' | 'drink_mix' | 'real_food';
+export type Diet = 'omnivore' | 'vegetarian' | 'vegan' | 'pescatarian';
+export type Restriction = 'gluten' | 'dairy' | 'nuts' | 'soy' | 'eggs' | 'shellfish';
+
 export interface ProfileRow {
   id: string;
   email: string | null;
   full_name: string | null;
   weight_kg: number | null;
-  sport: 'cycling' | 'running' | null;
+  birth_date: string | null;
+  sex: Sex | null;
+  height_cm: number | null;
+  disciplines: Discipline[];
+  ftp_watts: number | null;
+  running_threshold_sec_per_km: number | null;
+  max_hr: number | null;
+  weekly_training_hours: number | null;
+  sweat_rate: SweatRate | null;
+  max_carbs_g_hr: number | null;
+  caffeine_tolerance: CaffeineTolerance | null;
+  fuel_forms: FuelForm[];
+  diet: Diet | null;
+  restrictions: Restriction[];
+  restrictions_other: string | null;
+  avoid_notes: string | null;
   supplements: string[] | null;
   created_at: string;
 }
@@ -50,7 +73,22 @@ export interface Profile {
   email: string | null;
   fullName: string | null;
   weightKg: number | null;
-  sport: 'cycling' | 'running' | null;
+  birthDate: string | null;
+  sex: Sex | null;
+  heightCm: number | null;
+  disciplines: Discipline[];
+  ftpWatts: number | null;
+  runningThresholdSecPerKm: number | null;
+  maxHr: number | null;
+  weeklyTrainingHours: number | null;
+  sweatRate: SweatRate | null;
+  maxCarbsGHr: number | null;
+  caffeineTolerance: CaffeineTolerance | null;
+  fuelForms: FuelForm[];
+  diet: Diet | null;
+  restrictions: Restriction[];
+  restrictionsOther: string | null;
+  avoidNotes: string | null;
   supplements: string[];
 }
 
