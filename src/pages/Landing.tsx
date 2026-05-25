@@ -1,6 +1,9 @@
 import { Link } from 'react-router-dom';
+import { useSession } from '../hooks/useSession';
+import { supabase } from '../lib/supabase';
 
 export default function Landing() {
+  const { session } = useSession();
   return (
     <div className="min-h-screen bg-zinc-950 text-zinc-100 antialiased selection:bg-amber-500/30 selection:text-amber-100">
       <div className="pointer-events-none absolute inset-x-0 top-0 -z-0 h-[640px] overflow-hidden">
@@ -22,21 +25,46 @@ export default function Landing() {
           <a href="#how-it-works" className="transition hover:text-white">How it works</a>
           <a href="#pricing" className="transition hover:text-white">Pricing</a>
         </nav>
-        <Link
-          to="/signup"
-          className="rounded-full bg-gradient-to-br from-amber-400 to-orange-600 px-5 py-2 text-sm font-semibold text-zinc-950 shadow-lg shadow-orange-600/20 transition hover:shadow-orange-500/40 hover:brightness-110"
-        >
-          Sign Up
-        </Link>
+        {session ? (
+          <div className="flex items-center gap-3">
+            <span className="hidden max-w-50 truncate text-sm text-zinc-400 sm:inline" title={session.user.email ?? ''}>
+              {session.user.email}
+            </span>
+            <Link
+              to="/app"
+              className="rounded-full bg-gradient-to-br from-amber-400 to-orange-600 px-5 py-2 text-sm font-semibold text-zinc-950 shadow-lg shadow-orange-600/20 transition hover:shadow-orange-500/40 hover:brightness-110"
+            >
+              Go to app
+            </Link>
+            <button
+              type="button"
+              onClick={() => supabase.auth.signOut()}
+              className="rounded-full border border-zinc-700 bg-zinc-900 px-5 py-2 text-sm font-semibold text-zinc-100 transition hover:border-zinc-500 hover:bg-zinc-800"
+            >
+              Sign out
+            </button>
+          </div>
+        ) : (
+          <div className="flex items-center gap-3">
+            <Link
+              to="/login"
+              className="hidden rounded-full px-4 py-2 text-sm font-semibold text-zinc-300 transition hover:text-white sm:inline-block"
+            >
+              Sign in
+            </Link>
+            <Link
+              to="/signup"
+              className="rounded-full bg-gradient-to-br from-amber-400 to-orange-600 px-5 py-2 text-sm font-semibold text-zinc-950 shadow-lg shadow-orange-600/20 transition hover:shadow-orange-500/40 hover:brightness-110"
+            >
+              Sign Up
+            </Link>
+          </div>
+        )}
       </header>
 
       <main className="relative z-10">
         <section className="mx-auto max-w-6xl px-6 pt-16 pb-28 md:pt-24 md:pb-36">
           <div className="mx-auto max-w-3xl text-center">
-            <span className="inline-flex items-center gap-2 rounded-full border border-amber-500/30 bg-amber-500/10 px-3 py-1 text-xs font-medium text-amber-300">
-              <span className="h-1.5 w-1.5 rounded-full bg-amber-400" />
-              Built for cyclists & runners
-            </span>
             <h1 className="mt-6 text-5xl font-bold tracking-tight md:text-7xl">
               Your race-day fuel,{' '}
               <span className="bg-gradient-to-br from-amber-300 via-orange-400 to-rose-500 bg-clip-text text-transparent">

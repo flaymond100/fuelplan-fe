@@ -1,6 +1,7 @@
 import { useState, type FormEvent } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
+import { friendlyError } from '../lib/authErrors';
 
 type Status =
   | { kind: 'idle' }
@@ -29,7 +30,7 @@ export default function SignUp() {
     const { data, error } = await supabase.auth.signUp({
       email,
       password,
-      options: { emailRedirectTo: `${window.location.origin}/` },
+      options: { emailRedirectTo: `${window.location.origin}/app` },
     });
 
     if (error) {
@@ -38,7 +39,7 @@ export default function SignUp() {
     }
 
     if (data.session) {
-      navigate('/', { replace: true });
+      navigate('/app', { replace: true });
       return;
     }
 
@@ -50,7 +51,7 @@ export default function SignUp() {
     setGoogleLoading(true);
     const { error } = await supabase.auth.signInWithOAuth({
       provider: 'google',
-      options: { redirectTo: `${window.location.origin}/` },
+      options: { redirectTo: `${window.location.origin}/app` },
     });
     if (error) {
       setGoogleLoading(false);
@@ -311,19 +312,3 @@ function Spinner() {
   );
 }
 
-function friendlyError(message: string): string {
-  const m = message.toLowerCase();
-  if (m.includes('already registered') || m.includes('user already')) {
-    return 'An account with this email already exists. Try signing in instead.';
-  }
-  if (m.includes('invalid') && m.includes('email')) {
-    return 'That email address doesn\'t look right.';
-  }
-  if (m.includes('password')) {
-    return 'Password must be at least 8 characters.';
-  }
-  if (m.includes('rate limit') || m.includes('too many')) {
-    return 'Too many attempts. Please wait a moment and try again.';
-  }
-  return message || 'Something went wrong. Please try again.';
-}
