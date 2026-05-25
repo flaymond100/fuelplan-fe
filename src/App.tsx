@@ -5,8 +5,14 @@ import Landing from './pages/Landing';
 import SignUp from './pages/SignUp';
 import Login from './pages/Login';
 import Dashboard from './pages/Dashboard';
+import Plans from './pages/Plans';
+import NewPlan from './pages/NewPlan';
+import Profile from './pages/Profile';
+import Subscription from './pages/Subscription';
+import Settings from './pages/Settings';
 import RequireAuth from './components/RequireAuth';
 import PublicOnlyRoute from './components/PublicOnlyRoute';
+import AppLayout from './components/AppLayout';
 
 const queryClient = new QueryClient();
 
@@ -37,10 +43,17 @@ export default function App() {
             path="/app"
             element={
               <RequireAuth>
-                <Dashboard />
+                <AppLayout />
               </RequireAuth>
             }
-          />
+          >
+            <Route index element={<Dashboard />} />
+            <Route path="plans" element={<Plans />} />
+            <Route path="plans/new" element={<NewPlan />} />
+            <Route path="profile" element={<Profile />} />
+            <Route path="subscription" element={<Subscription />} />
+            <Route path="settings" element={<Settings />} />
+          </Route>
         </Routes>
       </BrowserRouter>
     </QueryClientProvider>
