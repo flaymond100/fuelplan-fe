@@ -13,7 +13,7 @@ type NavItem = {
 const NAV: NavItem[] = [
   { to: '/app', label: 'Dashboard', end: true, icon: <DashboardIcon /> },
   { to: '/app/plans/new', label: 'New plan', icon: <PlusIcon /> },
-  { to: '/app/plans', label: 'My plans', icon: <ListIcon /> },
+  { to: '/app/plans', label: 'My plans', end: true, icon: <ListIcon /> },
   { to: '/app/profile', label: 'Profile', icon: <UserIcon /> },
   { to: '/app/subscription', label: 'Subscription', icon: <CardIcon /> },
   { to: '/app/settings', label: 'Settings', icon: <GearIcon /> },
