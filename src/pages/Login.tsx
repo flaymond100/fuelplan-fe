@@ -108,7 +108,7 @@ export default function Login() {
               type="button"
               onClick={handleGoogle}
               disabled={googleLoading}
-              className="mt-8 flex w-full items-center justify-center gap-3 rounded-xl border border-zinc-700 bg-zinc-900 px-4 py-3 text-sm font-semibold text-zinc-100 transition hover:border-zinc-500 hover:bg-zinc-800 disabled:cursor-not-allowed disabled:opacity-60"
+              className="mt-8 flex w-full items-center justify-center gap-3 rounded-sm border border-zinc-700 bg-zinc-900 px-4 py-3 text-sm font-semibold text-zinc-100 transition hover:border-zinc-500 hover:bg-zinc-800 disabled:cursor-not-allowed disabled:opacity-60"
             >
               <GoogleIcon />
               {googleLoading ? 'Redirecting…' : 'Continue with Google'}
@@ -132,7 +132,7 @@ export default function Login() {
                   required
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  className="mt-1.5 block w-full rounded-xl border border-zinc-800 bg-zinc-900 px-4 py-3 text-zinc-100 placeholder-zinc-500 transition focus:border-amber-500/60 focus:bg-zinc-900 focus:outline-none focus:ring-2 focus:ring-amber-500/30"
+                  className="mt-1.5 block w-full rounded-sm border border-zinc-800 bg-zinc-900 px-4 py-3 text-zinc-100 placeholder-zinc-500 transition focus:border-amber-500/60 focus:bg-zinc-900 focus:outline-none focus:ring-2 focus:ring-amber-500/30"
                   placeholder="you@example.com"
                 />
               </div>
@@ -154,7 +154,7 @@ export default function Login() {
                     required
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
-                    className="block w-full rounded-xl border border-zinc-800 bg-zinc-900 px-4 py-3 pr-12 text-zinc-100 placeholder-zinc-500 transition focus:border-amber-500/60 focus:outline-none focus:ring-2 focus:ring-amber-500/30"
+                    className="block w-full rounded-sm border border-zinc-800 bg-zinc-900 px-4 py-3 pr-12 text-zinc-100 placeholder-zinc-500 transition focus:border-amber-500/60 focus:outline-none focus:ring-2 focus:ring-amber-500/30"
                     placeholder="Your password"
                   />
                   <button
@@ -180,7 +180,7 @@ export default function Login() {
               <button
                 type="submit"
                 disabled={status.kind === 'submitting'}
-                className="group inline-flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-br from-amber-400 to-orange-600 px-5 py-3 text-base font-semibold text-zinc-950 shadow-lg shadow-orange-600/20 transition hover:shadow-orange-500/40 hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-70"
+                className="group inline-flex w-full items-center justify-center gap-2 rounded-sm bg-gradient-to-br from-amber-400 to-orange-600 px-5 py-3 text-base font-semibold text-zinc-950 shadow-lg shadow-orange-600/20 transition hover:shadow-orange-500/40 hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-70"
               >
                 {status.kind === 'submitting' ? (
                   <>

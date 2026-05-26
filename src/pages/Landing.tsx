@@ -202,8 +202,8 @@ function FeatureCard({
   icon: React.ReactNode;
 }) {
   return (
-    <div className="group relative overflow-hidden rounded-2xl border border-zinc-800 bg-zinc-900/40 p-7 backdrop-blur transition hover:border-amber-500/30 hover:bg-zinc-900/70">
-      <div className="mb-5 inline-flex h-11 w-11 items-center justify-center rounded-xl bg-gradient-to-br from-amber-400/20 to-orange-600/10 text-amber-300 ring-1 ring-inset ring-amber-500/20">
+    <div className="group relative overflow-hidden rounded-sm border border-zinc-800 bg-zinc-900/40 p-7 backdrop-blur transition hover:border-amber-500/30 hover:bg-zinc-900/70">
+      <div className="mb-5 inline-flex h-11 w-11 items-center justify-center rounded-sm bg-gradient-to-br from-amber-400/20 to-orange-600/10 text-amber-300 ring-1 ring-inset ring-amber-500/20">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" className="h-5 w-5">
           {icon}
         </svg>

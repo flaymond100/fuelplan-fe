@@ -16,7 +16,7 @@ export default function Profile() {
     return (
       <div>
         <Header />
-        <div className="mt-8 rounded-2xl border border-zinc-200 bg-white p-12 text-center text-sm text-zinc-500">
+        <div className="mt-8 rounded-sm border border-zinc-200 bg-white p-12 text-center text-sm text-zinc-500">
           Loading…
         </div>
       </div>
@@ -27,7 +27,7 @@ export default function Profile() {
     return (
       <div>
         <Header />
-        <div className="mt-8 rounded-2xl border border-rose-200 bg-rose-50 p-6 text-sm text-rose-700">
+        <div className="mt-8 rounded-sm border border-rose-200 bg-rose-50 p-6 text-sm text-rose-700">
           Could not load your profile. Refresh to try again.
         </div>
       </div>
@@ -156,7 +156,7 @@ function Header() {
 
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
   return (
-    <section className="rounded-2xl border border-zinc-200 bg-white p-6">
+    <section className="rounded-sm border border-zinc-200 bg-white p-6">
       <h2 className="text-base font-semibold text-zinc-900">{title}</h2>
       <dl className="mt-4 divide-y divide-zinc-100">{children}</dl>
     </section>

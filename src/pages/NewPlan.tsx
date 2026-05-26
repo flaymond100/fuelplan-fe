@@ -380,7 +380,7 @@ function Section({
   children: React.ReactNode;
 }) {
   return (
-    <section className="rounded-2xl border border-zinc-200 bg-white p-6">
+    <section className="rounded-sm border border-zinc-200 bg-white p-6">
       <header className="mb-5">
         <h2 className="text-base font-semibold text-zinc-900">{title}</h2>
         {subtitle && <p className="mt-1 text-sm text-zinc-500">{subtitle}</p>}
@@ -454,7 +454,7 @@ function WeatherCard({
 
   if (isLoading) {
     return (
-      <div className="rounded-xl border border-zinc-200 bg-zinc-50 px-4 py-3 text-sm text-zinc-500">
+      <div className="rounded-sm border border-zinc-200 bg-zinc-50 px-4 py-3 text-sm text-zinc-500">
         Looking up forecast…
       </div>
     );
@@ -465,7 +465,7 @@ function WeatherCard({
   if (data.kind === 'out_of_range') {
     if (data.reason === 'past') return null;
     return (
-      <div className="rounded-xl border border-zinc-200 bg-zinc-50 px-4 py-3 text-sm text-zinc-600">
+      <div className="rounded-sm border border-zinc-200 bg-zinc-50 px-4 py-3 text-sm text-zinc-600">
         <span className="font-medium text-zinc-700">Forecast available closer to race day.</span>{' '}
         Race is {data.daysAway} days out — we'll fill this in nearer the date.
       </div>
@@ -480,7 +480,7 @@ function WeatherCard({
   }).format(new Date(f.date));
 
   return (
-    <div className="rounded-xl border border-amber-200 bg-amber-50/60 px-4 py-3">
+    <div className="rounded-sm border border-amber-200 bg-amber-50/60 px-4 py-3">
       <p className="text-xs font-semibold uppercase tracking-wider text-amber-700">
         Forecast · {formattedDate}
       </p>

@@ -36,7 +36,7 @@ export default function Dashboard() {
 
       <section className="mt-12">
         <h2 className="text-sm font-semibold uppercase tracking-wider text-zinc-500">Recent plans</h2>
-        <div className="mt-4 rounded-2xl border border-dashed border-zinc-200 bg-white p-10 text-center">
+        <div className="mt-4 rounded-sm border border-dashed border-zinc-200 bg-white p-10 text-center">
           <p className="text-sm text-zinc-500">
             No plans yet.{' '}
             <Link to="/app/plans/new" className="font-medium text-amber-600 hover:text-amber-700">
@@ -53,7 +53,7 @@ function PrimaryCard({ to, title, body }: { to: string; title: string; body: str
   return (
     <Link
       to={to}
-      className="group relative overflow-hidden rounded-2xl bg-gradient-to-br from-amber-400 to-orange-600 p-6 text-zinc-950 shadow-lg shadow-orange-600/20 transition hover:shadow-orange-500/40 hover:brightness-105"
+      className="group relative overflow-hidden rounded-sm bg-gradient-to-br from-amber-400 to-orange-600 p-6 text-zinc-950 shadow-lg shadow-orange-600/20 transition hover:shadow-orange-500/40 hover:brightness-105"
     >
       <h3 className="text-lg font-semibold">{title}</h3>
       <p className="mt-2 text-sm leading-relaxed text-zinc-900/80">{body}</p>
@@ -71,7 +71,7 @@ function SecondaryCard({ to, title, body }: { to: string; title: string; body: s
   return (
     <Link
       to={to}
-      className="group rounded-2xl border border-zinc-200 bg-white p-6 transition hover:border-zinc-300 hover:shadow-sm"
+      className="group rounded-sm border border-zinc-200 bg-white p-6 transition hover:border-zinc-300 hover:shadow-sm"
     >
       <h3 className="text-lg font-semibold text-zinc-900">{title}</h3>
       <p className="mt-2 text-sm leading-relaxed text-zinc-500">{body}</p>

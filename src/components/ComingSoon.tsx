@@ -6,8 +6,8 @@ export default function ComingSoon({
   description: string;
 }) {
   return (
-    <div className="rounded-2xl border border-dashed border-zinc-200 bg-white p-12 text-center">
-      <div className="mx-auto grid h-12 w-12 place-items-center rounded-xl bg-amber-500/10 text-amber-600">
+    <div className="rounded-sm border border-dashed border-zinc-200 bg-white p-12 text-center">
+      <div className="mx-auto grid h-12 w-12 place-items-center rounded-sm bg-amber-500/10 text-amber-600">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" className="h-6 w-6">
           <circle cx="12" cy="12" r="10" />
           <path d="M12 6v6l4 2" />
