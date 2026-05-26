@@ -8,6 +8,7 @@ import Dashboard from './pages/Dashboard';
 import Plans from './pages/Plans';
 import NewPlan from './pages/NewPlan';
 import Profile from './pages/Profile';
+import ProfileEdit from './pages/ProfileEdit';
 import Subscription from './pages/Subscription';
 import Settings from './pages/Settings';
 import RequireAuth from './components/RequireAuth';
@@ -51,6 +52,7 @@ export default function App() {
             <Route path="plans" element={<Plans />} />
             <Route path="plans/new" element={<NewPlan />} />
             <Route path="profile" element={<Profile />} />
+            <Route path="profile/edit" element={<ProfileEdit />} />
             <Route path="subscription" element={<Subscription />} />
             <Route path="settings" element={<Settings />} />
           </Route>

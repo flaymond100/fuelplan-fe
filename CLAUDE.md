@@ -53,7 +53,7 @@ fuelplan/
 
 1. **Only `VITE_*` env vars are accessible from frontend code.** Anything else is undefined at runtime.
 2. **Never reference `SUPABASE_SERVICE_ROLE_KEY` anywhere.** If you ever feel you need to, stop — the answer is a backend route, not a workaround.
-3. **All writes to `profiles`, `plans` go through backend routes**, not the Supabase client. The client is for auth + reads only. (RLS would block writes anyway but keep code consistent.)
+3. **All writes to `plans` go through backend routes**, not the Supabase client. `profiles` is the explicit exception — its writes go FE→Supabase direct under RLS + DB CHECK constraints (see [decision 0002](../fuelplan-shared/decisions/0002-profile-writes-direct.md)). For everything else the supabase client is for auth + reads only.
 4. **`subscriptions` and `plan_credits` are read-only from the frontend.** Display them, never mutate.
 5. **No `dangerouslySetInnerHTML`** on anything derived from user input or AI output, ever. The plan JSON renders into structured components.
 6. **No `localStorage` for auth tokens.** Supabase SDK handles session storage — don't second-guess it.
