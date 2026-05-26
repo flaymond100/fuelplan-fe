@@ -1,9 +1,11 @@
-import { useEffect, useState, type SyntheticEvent } from 'react';
+import { useState, type SyntheticEvent } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import { useQueryClient } from '@tanstack/react-query';
 import toast from 'react-hot-toast';
 import PageHeader from '../components/PageHeader';
 import { supabase } from '../lib/supabase';
 import { useSession } from '../hooks/useSession';
+import { profileQueryKey, useProfile } from '../hooks/useProfile';
 import {
   FUEL_FORM_LABELS,
   RESTRICTION_LABELS,
@@ -100,34 +102,40 @@ function toggle<T>(set: Set<T>, value: T): Set<T> {
 }
 
 export default function ProfileEdit() {
+  const { data: profile, isLoading, isError } = useProfile();
+
+  if (isLoading) {
+    return (
+      <div>
+        <PageHeader title="Edit profile" />
+        <div className="mt-8 rounded-2xl border border-zinc-200 bg-white p-12 text-center text-sm text-zinc-500">
+          Loading…
+        </div>
+      </div>
+    );
+  }
+
+  if (isError) {
+    return (
+      <div>
+        <PageHeader title="Edit profile" />
+        <div className="mt-8 rounded-2xl border border-rose-200 bg-rose-50 p-6 text-sm text-rose-700">
+          Could not load your profile. Refresh to try again.
+        </div>
+      </div>
+    );
+  }
+
+  return <ProfileEditForm initial={profile ?? null} />;
+}
+
+function ProfileEditForm({ initial }: { initial: ProfileRow | null }) {
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
   const { session } = useSession();
   const userId = session?.user.id;
-  const [form, setForm] = useState<FormState>(EMPTY_FORM);
-  const [loadState, setLoadState] = useState<'loading' | 'ready' | 'error'>('loading');
+  const [form, setForm] = useState<FormState>(() => (initial ? rowToForm(initial) : EMPTY_FORM));
   const [saving, setSaving] = useState(false);
-
-  useEffect(() => {
-    if (!userId) return;
-    let cancelled = false;
-    supabase
-      .from('profiles')
-      .select('*')
-      .eq('id', userId)
-      .maybeSingle()
-      .then(({ data, error }) => {
-        if (cancelled) return;
-        if (error) {
-          setLoadState('error');
-          return;
-        }
-        if (data) setForm(rowToForm(data as unknown as ProfileRow));
-        setLoadState('ready');
-      });
-    return () => {
-      cancelled = true;
-    };
-  }, [userId]);
 
   function update<K extends keyof FormState>(key: K, value: FormState[K]) {
     setForm((prev) => ({ ...prev, [key]: value }));
@@ -175,30 +183,9 @@ export default function ProfileEdit() {
       toast.error(error.message || 'Could not save profile. Please try again.');
       return;
     }
+    await queryClient.invalidateQueries({ queryKey: profileQueryKey(userId) });
     toast.success('Profile saved');
     navigate('/app/profile');
-  }
-
-  if (loadState === 'loading') {
-    return (
-      <div>
-        <PageHeader title="Edit profile" />
-        <div className="mt-8 rounded-2xl border border-zinc-200 bg-white p-12 text-center text-sm text-zinc-500">
-          Loading…
-        </div>
-      </div>
-    );
-  }
-
-  if (loadState === 'error') {
-    return (
-      <div>
-        <PageHeader title="Edit profile" />
-        <div className="mt-8 rounded-2xl border border-rose-200 bg-rose-50 p-6 text-sm text-rose-700">
-          Could not load your profile. Refresh to try again.
-        </div>
-      </div>
-    );
   }
 
   const showCycling = form.disciplines.has('cycling');

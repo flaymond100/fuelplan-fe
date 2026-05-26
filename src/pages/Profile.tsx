@@ -1,8 +1,6 @@
-import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import PageHeader from '../components/PageHeader';
-import { supabase } from '../lib/supabase';
-import { useSession } from '../hooks/useSession';
+import { useProfile } from '../hooks/useProfile';
 import {
   FUEL_FORM_LABELS,
   RESTRICTION_LABELS,
@@ -10,37 +8,11 @@ import {
   formatPace,
   humanize,
 } from '../lib/profileFormat';
-import type { ProfileRow } from '../types';
 
 export default function Profile() {
-  const { session } = useSession();
-  const userId = session?.user.id;
-  const [profile, setProfile] = useState<ProfileRow | null>(null);
-  const [loadState, setLoadState] = useState<'loading' | 'ready' | 'error'>('loading');
+  const { data: profile, isLoading, isError } = useProfile();
 
-  useEffect(() => {
-    if (!userId) return;
-    let cancelled = false;
-    supabase
-      .from('profiles')
-      .select('*')
-      .eq('id', userId)
-      .maybeSingle()
-      .then(({ data, error }) => {
-        if (cancelled) return;
-        if (error) {
-          setLoadState('error');
-          return;
-        }
-        if (data) setProfile(data as unknown as ProfileRow);
-        setLoadState('ready');
-      });
-    return () => {
-      cancelled = true;
-    };
-  }, [userId]);
-
-  if (loadState === 'loading') {
+  if (isLoading) {
     return (
       <div>
         <Header />
@@ -51,7 +23,7 @@ export default function Profile() {
     );
   }
 
-  if (loadState === 'error') {
+  if (isError) {
     return (
       <div>
         <Header />

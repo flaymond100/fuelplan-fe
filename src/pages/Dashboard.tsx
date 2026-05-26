@@ -1,11 +1,13 @@
 import { Link } from 'react-router-dom';
 import PageHeader from '../components/PageHeader';
 import { useSession } from '../hooks/useSession';
+import { useProfile } from '../hooks/useProfile';
 
 export default function Dashboard() {
   const { session } = useSession();
+  const { data: profile } = useProfile();
   const email = session?.user.email ?? '';
-  const firstName = email.split('@')[0];
+  const firstName = profile?.full_name?.split(' ')[0] || email.split('@')[0];
 
   return (
     <div>
