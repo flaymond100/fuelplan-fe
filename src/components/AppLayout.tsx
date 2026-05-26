@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useMemo, useState } from 'react';
 import { Link, NavLink, Outlet, useLocation } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
 import { useSession } from '../hooks/useSession';
@@ -22,11 +22,11 @@ const NAV: NavItem[] = [
 export default function AppLayout() {
   const { session } = useSession();
   const location = useLocation();
-  const [mobileOpen, setMobileOpen] = useState(false);
-
-  useEffect(() => {
-    setMobileOpen(false);
-  }, [location.pathname]);
+  const [mobileOpenAtPath, setMobileOpenAtPath] = useState<string | null>(null);
+  const mobileOpen = useMemo(
+    () => mobileOpenAtPath === location.pathname,
+    [mobileOpenAtPath, location.pathname],
+  );
 
   return (
     <div className="min-h-screen bg-zinc-50 text-zinc-900 antialiased">
@@ -34,7 +34,7 @@ export default function AppLayout() {
         <button
           type="button"
           aria-label="Close menu"
-          onClick={() => setMobileOpen(false)}
+          onClick={() => setMobileOpenAtPath(null)}
           className="fixed inset-0 z-30 bg-zinc-950/60 backdrop-blur-sm lg:hidden"
         />
       )}
@@ -56,7 +56,7 @@ export default function AppLayout() {
           <button
             type="button"
             aria-label="Close menu"
-            onClick={() => setMobileOpen(false)}
+            onClick={() => setMobileOpenAtPath(null)}
             className="rounded-lg p-2 text-zinc-400 transition hover:bg-zinc-900 hover:text-white lg:hidden"
           >
             <CloseIcon />
@@ -112,7 +112,7 @@ export default function AppLayout() {
           <button
             type="button"
             aria-label="Open menu"
-            onClick={() => setMobileOpen(true)}
+            onClick={() => setMobileOpenAtPath(location.pathname)}
             className="rounded-lg p-2 text-zinc-700 transition hover:bg-zinc-100"
           >
             <MenuIcon />
