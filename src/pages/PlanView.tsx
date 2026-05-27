@@ -1,5 +1,8 @@
+import { useCallback, useRef } from 'react';
 import { Link, useParams } from 'react-router-dom';
-import RouteMap from '../components/RouteMap';
+import RouteMap, { type RouteMapHandle } from '../components/RouteMap';
+import ElevationProfile from '../components/ElevationProfile';
+import ClimbCard from '../components/ClimbCard';
 import { usePlan, useRouteTrack } from '../hooks/usePlans';
 import { useWeather } from '../hooks/useWeather';
 import { degToCompass } from '../lib/weather';
@@ -108,7 +111,11 @@ export default function PlanView() {
 }
 
 function RouteSection({ id }: { id: string | undefined }) {
-  const { data: track, isLoading, isError } = useRouteTrack(id);
+  const { data, isLoading, isError } = useRouteTrack(id);
+  const mapRef = useRef<RouteMapHandle>(null);
+  const handleHover = useCallback((latlng: [number, number] | null) => {
+    mapRef.current?.setCursor(latlng);
+  }, []);
 
   if (isLoading) {
     return (
@@ -117,14 +124,33 @@ function RouteSection({ id }: { id: string | undefined }) {
       </div>
     );
   }
-  if (isError || !track || track.length === 0) {
+  if (isError || !data || data.track.length === 0) {
     return (
       <div className="grid h-72 w-full place-items-center rounded-xl border border-zinc-200 bg-zinc-50 text-sm text-zinc-500">
         Route map unavailable.
       </div>
     );
   }
-  return <RouteMap track={track} />;
+  return (
+    <>
+      <RouteMap ref={mapRef} track={data.track} profile={data.profile} />
+      {data.profile && data.profile.length >= 2 && (
+        <ElevationProfile points={data.profile} climbs={data.climbs} onHover={handleHover} />
+      )}
+      {data.climbs.length > 0 && data.profile && (
+        <div className="mt-4">
+          <p className="mb-2 text-[10px] font-semibold uppercase tracking-[0.18em] text-zinc-400">
+            Climb breakdown
+          </p>
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
+            {data.climbs.map((climb, i) => (
+              <ClimbCard key={i} climb={climb} index={i} points={data.profile!} />
+            ))}
+          </div>
+        </div>
+      )}
+    </>
+  );
 }
 
 function WeatherSection({

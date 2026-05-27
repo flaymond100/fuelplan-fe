@@ -1,9 +1,15 @@
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '../lib/supabase';
 import { api } from '../lib/api';
-import { extractGpxTrack } from '../lib/gpx';
+import { extractGpxTrack, extractElevationProfile, detectClimbs, type ElevationPoint, type Climb } from '../lib/gpx';
 import { useSession } from './useSession';
 import type { PlanRow } from '../types';
+
+export type RouteData = {
+  track: [number, number][];
+  profile: ElevationPoint[] | null;
+  climbs: Climb[];
+};
 
 export const plansQueryKey = (userId: string | undefined) => ['plans', userId] as const;
 export const planQueryKey = (id: string | undefined) => ['plan', id] as const;
@@ -57,11 +63,17 @@ export function useRouteTrack(id: string | undefined) {
     enabled: !!id,
     staleTime: Infinity, // a plan's GPX never changes
     retry: 1,
-    queryFn: async (): Promise<[number, number][]> => {
+    queryFn: async (): Promise<RouteData> => {
       const { url } = await api.get<{ url: string }>(`/api/plans/${id}/gpx`);
       const res = await fetch(url);
       if (!res.ok) throw new Error(`Failed to fetch GPX (${res.status})`);
-      return extractGpxTrack(await res.text());
+      const text = await res.text();
+      const profile = extractElevationProfile(text);
+      return {
+        track: extractGpxTrack(text),
+        profile,
+        climbs: profile ? detectClimbs(profile) : [],
+      };
     },
   });
 }
