@@ -2,6 +2,7 @@ import { useRef, useState, type SyntheticEvent } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import toast from 'react-hot-toast';
 import PageHeader from '../components/PageHeader';
+import GeneratingOverlay from '../components/GeneratingOverlay';
 import { parseGpx, type GpxSummary } from '../lib/gpx';
 import { useWeather } from '../hooks/useWeather';
 import { api, errorStatus } from '../lib/api';
@@ -188,6 +189,7 @@ export default function NewPlan() {
 
   return (
     <div>
+      {submitting && <GeneratingOverlay />}
       <PageHeader
         title="New plan"
         subtitle="A few questions about the race, the route, and your goals. We'll handle the rest."
@@ -430,7 +432,7 @@ export default function NewPlan() {
 
         <div className="flex items-center justify-end gap-3 pt-2">
           {submitting && (
-            <span className="mr-auto text-sm text-zinc-500">This can take up to 30 seconds…</span>
+            <span className="mr-auto text-sm text-zinc-500">This can take up to 2 minutes…</span>
           )}
           <Link
             to="/app/plans"

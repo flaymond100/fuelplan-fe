@@ -18,7 +18,6 @@ const RouteMap = forwardRef<RouteMapHandle, Props>(({ track, profile, wind }, re
   const containerRef = useRef<HTMLDivElement>(null);
   const cursorRef = useRef<L.CircleMarker | null>(null);
   const mapRef = useRef<L.Map | null>(null);
-  const windMarkersRef = useRef<L.Marker[]>([]);
 
   useImperativeHandle(ref, () => ({
     setCursor(latlng) {
@@ -84,40 +83,11 @@ const RouteMap = forwardRef<RouteMapHandle, Props>(({ track, profile, wind }, re
     cursorRef.current = cursor;
 
     return () => {
-      windMarkersRef.current = [];
       cursorRef.current = null;
       mapRef.current = null;
       map.remove();
     };
   }, [track, profile]);
-
-  // Separate effect so wind arrows update without recreating the map
-  useEffect(() => {
-    windMarkersRef.current.forEach((m) => m.remove());
-    windMarkersRef.current = [];
-
-    const map = mapRef.current;
-    if (!map || !wind) return;
-
-    const pts: [number, number][] =
-      profile && profile.length >= 2
-        ? profile.map((p) => [p.lat, p.lng])
-        : track;
-
-    const count = 5;
-    const step = Math.max(1, Math.floor(pts.length / (count + 1)));
-    const rotateDeg = wind.directionDeg + 180;
-    const arrowHtml = `<div style="width:30px;height:30px;background:rgba(255,255,255,0.92);border-radius:50%;display:flex;align-items:center;justify-content:center;box-shadow:0 1px 5px rgba(0,0,0,0.22);transform:rotate(${rotateDeg}deg)"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="#f59e0b" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v18M6 9l6-6 6 6"/></svg></div>`;
-
-    for (let i = 1; i <= count; i++) {
-      const pt = pts[Math.min(i * step, pts.length - 1)];
-      const marker = L.marker(pt, {
-        icon: L.divIcon({ html: arrowHtml, className: '', iconSize: [30, 30], iconAnchor: [15, 15] }),
-        interactive: false,
-      }).addTo(map);
-      windMarkersRef.current.push(marker);
-    }
-  }, [wind, track, profile]);
 
   const zoomIn = useCallback(() => mapRef.current?.zoomIn(), []);
   const zoomOut = useCallback(() => mapRef.current?.zoomOut(), []);
@@ -125,6 +95,7 @@ const RouteMap = forwardRef<RouteMapHandle, Props>(({ track, profile, wind }, re
   return (
     <div className="relative">
       <div ref={containerRef} className="h-72 w-full rounded-xl" />
+
       <div className="absolute right-3 top-3 flex flex-col gap-1">
         <button
           onClick={zoomIn}

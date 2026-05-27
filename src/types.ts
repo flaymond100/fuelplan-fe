@@ -51,6 +51,22 @@ export interface PlanNutrientTotals {
   kcal: number;
 }
 
+// Additive fields (decision 0004) — all optional, schemaVersion stays 1.
+export type PlanItemKind = 'meal' | 'snack' | 'fuel' | 'supplement' | 'hydration' | 'action';
+export type MacroTone = 'default' | 'green' | 'amber' | 'red';
+export type AlertSeverity = 'info' | 'success' | 'warning' | 'danger';
+
+export interface PlanMacroChip {
+  label: string;
+  tone?: MacroTone;
+}
+
+export interface PlanAlert {
+  severity: AlertSeverity;
+  title: string;
+  body: string;
+}
+
 export interface PlanItem extends PlanNutrientTotals {
   offsetMin: number;
   label: string;
@@ -60,6 +76,8 @@ export interface PlanItem extends PlanNutrientTotals {
   fatG: number;
   proteinG: number;
   notes: string | null;
+  kind?: PlanItemKind;
+  detail?: string;
 }
 
 export interface PlanPhase {
@@ -69,6 +87,7 @@ export interface PlanPhase {
   endOffsetMin: number;
   totals: PlanNutrientTotals;
   items: PlanItem[];
+  macros?: PlanMacroChip[];
 }
 
 export interface PlanJson {
@@ -78,6 +97,7 @@ export interface PlanJson {
   totals: PlanNutrientTotals;
   phases: PlanPhase[];
   warnings: string[];
+  alerts?: PlanAlert[];
 }
 
 export interface PlanRequestParams {

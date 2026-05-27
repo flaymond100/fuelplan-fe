@@ -3,11 +3,11 @@ import { Link, useParams } from 'react-router-dom';
 import RouteMap, { type RouteMapHandle } from '../components/RouteMap';
 import ElevationProfile from '../components/ElevationProfile';
 import ClimbCard from '../components/ClimbCard';
+import PlanDays from '../components/PlanDays';
 import { usePlan, useRouteTrack } from '../hooks/usePlans';
 import { useWeather } from '../hooks/useWeather';
 import { degToCompass } from '../lib/weather';
 import { formatDate } from '../lib/profileFormat';
-import type { PlanNutrientTotals, PlanPhase, PlanRow } from '../types';
 
 export default function PlanView() {
   const { id } = useParams<{ id: string }>();
@@ -45,8 +45,8 @@ export default function PlanView() {
     <div>
       <BackLink />
 
-      <div className="mt-4 overflow-hidden rounded-2xl border border-zinc-200 bg-white text-zinc-900 shadow-sm">
-        <div className="p-6 sm:p-8">
+      <div className="mt-4 text-zinc-900">
+        <div>
           {tagline && (
             <p className="text-xs font-semibold uppercase tracking-[0.2em] text-amber-400">
               {tagline}
@@ -65,11 +65,7 @@ export default function PlanView() {
           </div>
         </div>
 
-        <div className="px-6 sm:px-8">
-          <RouteSection id={id} lat={rp.gpxMeta?.startLat} lng={rp.gpxMeta?.startLng} date={plan.race_date} />
-        </div>
-
-        <div className="px-6 pt-6 sm:px-8">
+        <div className="mt-6">
           <WeatherSection
             lat={rp.gpxMeta?.startLat}
             lng={rp.gpxMeta?.startLng}
@@ -77,7 +73,11 @@ export default function PlanView() {
           />
         </div>
 
-        <div className="mt-6 grid grid-cols-2 gap-px bg-zinc-200 sm:grid-cols-3 lg:grid-cols-5">
+        <div className="mt-4">
+          <RouteSection id={id} lat={rp.gpxMeta?.startLat} lng={rp.gpxMeta?.startLng} date={plan.race_date} />
+        </div>
+
+        <div className="mt-6 grid grid-cols-2 gap-px overflow-hidden rounded-xl border border-zinc-200 bg-zinc-200 sm:grid-cols-3 lg:grid-cols-5">
           <MetricTile label="Carbs" value={p.totals.carbsG} unit="g" />
           <MetricTile label="Fluids" value={p.totals.fluidsMl} unit="ml" />
           <MetricTile label="Sodium" value={p.totals.sodiumMg} unit="mg" />
@@ -85,25 +85,8 @@ export default function PlanView() {
           <MetricTile label="Energy" value={p.totals.kcal} unit="kcal" />
         </div>
 
-        <div className="space-y-4 p-6 sm:p-8">
-          {p.warnings.length > 0 && (
-            <div className="rounded-xl border border-amber-200 bg-amber-50 p-4">
-              <ul className="space-y-1.5 text-sm text-amber-800">
-                {p.warnings.map((w, i) => (
-                  <li key={i} className="flex gap-2">
-                    <svg viewBox="0 0 20 20" fill="currentColor" className="mt-0.5 h-4 w-4 flex-shrink-0 text-amber-500">
-                      <path fillRule="evenodd" d="M8.485 2.495c.673-1.167 2.357-1.167 3.03 0l6.28 10.875c.673 1.167-.17 2.625-1.516 2.625H3.72c-1.347 0-2.189-1.458-1.515-2.625L8.485 2.495ZM10 6a.75.75 0 0 1 .75.75v3.5a.75.75 0 0 1-1.5 0v-3.5A.75.75 0 0 1 10 6Zm0 9a1 1 0 1 0 0-2 1 1 0 0 0 0 2Z" clipRule="evenodd" />
-                    </svg>
-                    {w}
-                  </li>
-                ))}
-              </ul>
-            </div>
-          )}
-
-          {p.phases.map((phase) => (
-            <PhaseCard key={phase.id} phase={phase} plan={plan} />
-          ))}
+        <div className="mt-6">
+          <PlanDays plan={plan} />
         </div>
       </div>
     </div>
@@ -219,33 +202,6 @@ function WeatherSection({
   );
 }
 
-function PhaseCard({ phase, plan }: { phase: PlanPhase; plan: PlanRow }) {
-  return (
-    <section className="overflow-hidden rounded-xl border border-zinc-200 bg-white">
-      <header className="flex flex-wrap items-baseline justify-between gap-2 border-b border-zinc-200 px-5 py-3.5">
-        <h2 className="font-semibold text-zinc-900">{phase.label}</h2>
-        <p className="text-xs text-zinc-500">{nutrientLine(phase.totals)}</p>
-      </header>
-      <ul className="divide-y divide-zinc-100">
-        {phase.items.map((item, i) => (
-          <li key={i} className="flex flex-col gap-1 px-5 py-4 sm:flex-row sm:gap-4">
-            <div className="w-28 flex-shrink-0 text-sm font-semibold text-amber-400">
-              {itemTime(plan.race_date, plan.start_time, item.offsetMin, item.label)}
-            </div>
-            <div className="flex-1">
-              <p className="text-sm text-zinc-900">{item.what}</p>
-              {nutrientLine(item) && (
-                <p className="mt-0.5 text-xs text-zinc-500">{nutrientLine(item)}</p>
-              )}
-              {item.notes && <p className="mt-1 text-xs italic text-zinc-500">{item.notes}</p>}
-            </div>
-          </li>
-        ))}
-      </ul>
-    </section>
-  );
-}
-
 function MetricTile({ label, value, unit }: { label: string; value: number; unit: string }) {
   return (
     <div className="bg-white px-4 py-5">
@@ -323,18 +279,6 @@ function BackLink() {
   );
 }
 
-function nutrientLine(n: PlanNutrientTotals & { fatG?: number; proteinG?: number }): string {
-  const parts: string[] = [];
-  if (n.carbsG) parts.push(`${n.carbsG} g carbs`);
-  if (n.proteinG) parts.push(`${n.proteinG} g protein`);
-  if (n.fatG) parts.push(`${n.fatG} g fat`);
-  if (n.fluidsMl) parts.push(`${n.fluidsMl} ml`);
-  if (n.sodiumMg) parts.push(`${n.sodiumMg} mg Na`);
-  if (n.caffeineMg) parts.push(`${n.caffeineMg} mg caffeine`);
-  if (n.kcal) parts.push(`${n.kcal} kcal`);
-  return parts.join(' · ');
-}
-
 function weatherLabel(code: number): string {
   if (code === 0) return 'Clear';
   if (code <= 3) return 'Partly cloudy';
@@ -352,21 +296,3 @@ function formatDuration(min: number): string {
   return h ? `${h}h ${m}m` : `${m}m`;
 }
 
-function itemTime(
-  raceDate: string | null,
-  startTime: string | null,
-  offsetMin: number,
-  label: string,
-): string {
-  if (!raceDate || !startTime) return label;
-  const [h, m] = startTime.split(':').map(Number);
-  const d = new Date(`${raceDate}T00:00:00`);
-  if (Number.isNaN(d.getTime())) return label;
-  d.setHours(h, m, 0, 0);
-  d.setMinutes(d.getMinutes() + offsetMin);
-  return new Intl.DateTimeFormat(undefined, {
-    weekday: 'short',
-    hour: '2-digit',
-    minute: '2-digit',
-  }).format(d);
-}
