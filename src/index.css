@@ -8,3 +8,20 @@
 .animate-fade-in {
   animation: fade-in 0.4s ease-out;
 }
+
+/* Wind-direction arrows on the route map (Leaflet divIcon markers) */
+.wind-arrow {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  /* Strong dark halo so the white lines read on the light basemap */
+  filter: drop-shadow(0 0 0.5px rgba(0, 0, 0, 0.85)) drop-shadow(0 0 1px rgba(0, 0, 0, 0.6));
+}
+.wind-arrow-inner {
+  animation: wind-arrow-drift 2s ease-in-out infinite;
+}
+@keyframes wind-arrow-drift {
+  0% { transform: translateY(4px); opacity: 0.1; }
+  50% { opacity: 0.55; }
+  100% { transform: translateY(-4px); opacity: 0.1; }
+}

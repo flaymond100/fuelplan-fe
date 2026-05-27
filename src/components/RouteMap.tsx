@@ -1,4 +1,4 @@
-import { forwardRef, useCallback, useEffect, useImperativeHandle, useRef } from 'react';
+import { forwardRef, useEffect, useImperativeHandle, useRef } from 'react';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import { gradientZone, ZONE_COLOR, smoothedSlopePct, type ElevationPoint } from '../lib/gpx';
@@ -18,6 +18,7 @@ const RouteMap = forwardRef<RouteMapHandle, Props>(({ track, profile, wind }, re
   const containerRef = useRef<HTMLDivElement>(null);
   const cursorRef = useRef<L.CircleMarker | null>(null);
   const mapRef = useRef<L.Map | null>(null);
+  const windLayerRef = useRef<L.LayerGroup | null>(null);
 
   useImperativeHandle(ref, () => ({
     setCursor(latlng) {
@@ -40,8 +41,11 @@ const RouteMap = forwardRef<RouteMapHandle, Props>(({ track, profile, wind }, re
       zoomControl: false,
       attributionControl: true,
       scrollWheelZoom: false,
+      zoomSnap: 0.5,
     });
     mapRef.current = map;
+
+    L.control.zoom({ position: 'topright' }).addTo(map);
 
     L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
       attribution: '&copy; OpenStreetMap &copy; CARTO',
@@ -72,6 +76,9 @@ const RouteMap = forwardRef<RouteMapHandle, Props>(({ track, profile, wind }, re
       map.fitBounds(line.getBounds(), { padding: [24, 24] });
     }
 
+    // Nudge the initial view a touch tighter than the exact fit
+    map.setZoom(map.getZoom() + 0.5);
+
     const start = track[0];
     const end = track[track.length - 1];
     L.circleMarker(start, { radius: 6, color: '#f59e0b', fillColor: '#f59e0b', fillOpacity: 1, weight: 2 }).addTo(map);
@@ -83,35 +90,57 @@ const RouteMap = forwardRef<RouteMapHandle, Props>(({ track, profile, wind }, re
     cursorRef.current = cursor;
 
     return () => {
+      windLayerRef.current = null;
       cursorRef.current = null;
       mapRef.current = null;
       map.remove();
     };
   }, [track, profile]);
 
-  const zoomIn = useCallback(() => mapRef.current?.zoomIn(), []);
-  const zoomOut = useCallback(() => mapRef.current?.zoomOut(), []);
+  // Wind-direction arrows — a grid of animated divIcon markers across the map.
+  // Separate effect so they update without recreating the map.
+  useEffect(() => {
+    const map = mapRef.current;
+    if (!map) return;
+
+    windLayerRef.current?.remove();
+    windLayerRef.current = null;
+    if (!wind) return;
+
+    const layer = L.layerGroup().addTo(map);
+    windLayerRef.current = layer;
+
+    const travelDeg = wind.directionDeg + 180;
+    const arrowHtml = `<div class="wind-arrow" style="transform:rotate(${travelDeg}deg)"><svg class="wind-arrow-inner" viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="#ffffff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v18M6 9l6-6 6 6"/></svg></div>`;
+    const icon = L.divIcon({ html: arrowHtml, className: '', iconSize: [13, 13], iconAnchor: [6.5, 6.5] });
+
+    const drawGrid = () => {
+      layer.clearLayers();
+      const b = map.getBounds();
+      const cols = 14;
+      const rows = 10;
+      const latSpan = b.getNorth() - b.getSouth();
+      const lngSpan = b.getEast() - b.getWest();
+      for (let r = 1; r <= rows; r++) {
+        for (let c = 1; c <= cols; c++) {
+          const lat = b.getSouth() + (latSpan * r) / (rows + 1);
+          const lng = b.getWest() + (lngSpan * c) / (cols + 1);
+          L.marker([lat, lng], { icon, interactive: false, keyboard: false }).addTo(layer);
+        }
+      }
+    };
+
+    drawGrid();
+    map.on('moveend zoomend', drawGrid);
+    return () => {
+      map.off('moveend zoomend', drawGrid);
+    };
+  }, [wind, track, profile]);
 
   return (
     <div className="relative">
-      <div ref={containerRef} className="h-72 w-full rounded-xl" />
+      <div ref={containerRef} className="h-128 w-full rounded-xl" />
 
-      <div className="absolute right-3 top-3 flex flex-col gap-1">
-        <button
-          onClick={zoomIn}
-          aria-label="Zoom in"
-          className="flex h-8 w-8 items-center justify-center rounded-lg bg-white text-lg font-semibold text-zinc-700 shadow-md transition hover:bg-zinc-50 active:scale-95"
-        >
-          +
-        </button>
-        <button
-          onClick={zoomOut}
-          aria-label="Zoom out"
-          className="flex h-8 w-8 items-center justify-center rounded-lg bg-white text-lg font-semibold text-zinc-700 shadow-md transition hover:bg-zinc-50 active:scale-95"
-        >
-          −
-        </button>
-      </div>
       {wind && (
         <div className="absolute bottom-3 left-3 flex items-center gap-2 rounded-lg bg-white/90 px-3 py-2 shadow-md backdrop-blur-sm">
           <svg
