@@ -47,11 +47,11 @@ Nothing committed yet — slices are ready to commit when you want them.
 
 - **Apply migration 0002** in Supabase SQL editor (paste contents of [fuelplan-be/migrations/0002_profile_fields.sql](../fuelplan-be/migrations/0002_profile_fields.sql)). Then end-to-end smoke test: open `/app/profile`, fill out, save, refresh, confirm values persist.
 - **`VITE_API_BASE_URL` no longer urgent** — only needed once we wire `/api/generate-plan` or other real BE calls. The [api.ts](src/lib/api.ts) wrapper now lazy-throws, so the app boots fine without it.
-- **Wire up plan generation** from [NewPlan.tsx](src/pages/NewPlan.tsx). Several open questions before this can ship:
-  - **Schema**: which fields persist on the `plans` row vs land in a `request_params jsonb` column vs are pure prompt context? Today's `plans` table only has `race_name`, `race_date`, `distance_km`, `elevation_m`, `start_time`, `gpx_file_path`, `plan_json`. The new fields (effort, target time, conditions, plan window, overrides) need a home — recommend adding `request_params jsonb`.
-  - **GPX upload**: needs supabase storage policies (bucket exists per 0001 but is service-role-only) + a backend route to accept upload and write `gpxFile → {user_id}/{plan_id}.gpx`. FE form currently just keeps the File in state.
-  - **Plan generation route**: `POST /api/plans` (auth-required, deducts credit, calls Claude with profile + form payload + parsed GPX summary, persists row, returns plan_id). This is real BE territory — backend agent next session.
-  - **Result page**: `/app/plans/:id` viewer rendering `plan_json` — doesn't exist yet.
+- **Plan generation pipeline — handed off to backend.** Full spec written in [shared WIP](../fuelplan-shared/WIP.md): migration `0003_plan_request_params.sql`, GPX upload + server-side parse, `POST /api/plans/generate` route contract (incl. the exact FE payload shape), and two open cross-repo questions (`plan_json` output schema + sync-vs-async generation UX). **Switch to the backend agent in a new session and hand it that spec.** FE follow-ups, once the route + schema are locked:
+  - Wire `NewPlan.tsx` submit → `api.post('/api/plans/generate', …)` → redirect to `/app/plans/:id` (currently stubbed to a toast).
+  - Build `/app/plans/:id` viewer against the agreed `plan_json` schema.
+  - Build real `/app/plans` list (supabase `select`, RLS-read).
+  - Set `VITE_API_BASE_URL` once the BE is reachable.
 - **Flesh out remaining placeholder pages**. [Subscription](src/pages/Subscription.tsx) needs Stripe wiring. [Plans](src/pages/Plans.tsx) lists plans; trivial once a few exist. [Settings](src/pages/Settings.tsx) is account-level.
 - **Forgot password flow** — the Login page links to `/forgot-password`, which 404s. Needs a page that calls `supabase.auth.resetPasswordForEmail()` plus a `/auth/reset-password` page where the redirect lands and calls `updateUser({ password })`. Wrap both in `PublicOnlyRoute`.
 - **Supabase redirect allowlist update** — when adding the production domain, allowlist `/app` (not just `/`) so OAuth and email-confirmation redirects don't bounce.
