@@ -54,6 +54,8 @@ export interface PlanItem extends PlanNutrientTotals {
   offsetMin: number;
   label: string;
   what: string;
+  fat: number;
+  protein: number;
   notes: string | null;
 }
 

@@ -2,7 +2,7 @@ import { Link, useParams } from 'react-router-dom';
 import PageHeader from '../components/PageHeader';
 import { usePlan } from '../hooks/usePlans';
 import { formatDate } from '../lib/profileFormat';
-import type { PlanItem, PlanPhase, PlanNutrientTotals, PlanRow } from '../types';
+import type { PlanPhase, PlanNutrientTotals, PlanRow } from '../types';
 
 export default function PlanView() {
   const { id } = useParams<{ id: string }>();
@@ -128,9 +128,11 @@ function BackLink() {
   );
 }
 
-function nutrientLine(n: PlanNutrientTotals | PlanItem): string {
+function nutrientLine(n: PlanNutrientTotals & { fat?: number; protein?: number }): string {
   const parts: string[] = [];
   if (n.carbsG) parts.push(`${n.carbsG} g carbs`);
+  if (n.protein) parts.push(`${n.protein} g protein`);
+  if (n.fat) parts.push(`${n.fat} g fat`);
   if (n.fluidsMl) parts.push(`${n.fluidsMl} ml`);
   if (n.sodiumMg) parts.push(`${n.sodiumMg} mg Na`);
   if (n.caffeineMg) parts.push(`${n.caffeineMg} mg caffeine`);
