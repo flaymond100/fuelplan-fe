@@ -33,6 +33,48 @@ export interface ProfileRow {
   created_at: string;
 }
 
+// ── plan_json schema (see decisions/0003-plan-json-schema.md) ───────────────
+
+export type PlanPhaseId =
+  | 'pre_race_d2'
+  | 'pre_race_d1'
+  | 'pre_race_morning'
+  | 'race'
+  | 'recovery';
+
+export interface PlanNutrientTotals {
+  carbsG: number;
+  fluidsMl: number;
+  sodiumMg: number;
+  caffeineMg: number;
+  kcal: number;
+}
+
+export interface PlanItem extends PlanNutrientTotals {
+  offsetMin: number;
+  label: string;
+  what: string;
+  notes: string | null;
+}
+
+export interface PlanPhase {
+  id: PlanPhaseId;
+  label: string;
+  startOffsetMin: number;
+  endOffsetMin: number;
+  totals: PlanNutrientTotals;
+  items: PlanItem[];
+}
+
+export interface PlanJson {
+  schemaVersion: number;
+  summary: string;
+  estimatedDurationMin: number;
+  totals: PlanNutrientTotals;
+  phases: PlanPhase[];
+  warnings: string[];
+}
+
 export interface PlanRow {
   id: string;
   user_id: string;
@@ -42,7 +84,7 @@ export interface PlanRow {
   elevation_m: number | null;
   start_time: string | null;
   gpx_file_path: string | null;
-  plan_json: Record<string, unknown>;
+  plan_json: PlanJson;
   created_at: string;
 }
 

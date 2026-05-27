@@ -6,6 +6,7 @@ import SignUp from './pages/SignUp';
 import Login from './pages/Login';
 import Dashboard from './pages/Dashboard';
 import Plans from './pages/Plans';
+import PlanView from './pages/PlanView';
 import NewPlan from './pages/NewPlan';
 import Profile from './pages/Profile';
 import ProfileEdit from './pages/ProfileEdit';
@@ -51,6 +52,7 @@ export default function App() {
             <Route index element={<Dashboard />} />
             <Route path="plans" element={<Plans />} />
             <Route path="plans/new" element={<NewPlan />} />
+            <Route path="plans/:id" element={<PlanView />} />
             <Route path="profile" element={<Profile />} />
             <Route path="profile/edit" element={<ProfileEdit />} />
             <Route path="subscription" element={<Subscription />} />

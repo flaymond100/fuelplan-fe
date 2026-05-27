@@ -41,18 +41,22 @@
 - **Landing logged-in CTA**: when a session exists, the Landing header now shows email + "Go to app" (primary button) + "Sign out" — gives a logged-in visitor an obvious path into the product.
 - **Env wired up**: [.env](.env) now has real `VITE_SUPABASE_URL` (project ref `v`) and `VITE_SUPABASE_ANON_KEY` (verified via JWT decode — `role: anon`). Confirmed `.env` is in `.gitignore`.
 
+- **Plan generation flow wired (FE half)**:
+  - **Submit** ([src/pages/NewPlan.tsx](src/pages/NewPlan.tsx)) — builds `multipart/form-data` (`gpxFile` + JSON `payload` matching the agreed shape), POSTs via `api.postForm` to `/api/plans/generate`, shows a spinner + "up to 30s" hint while in flight, maps `402/403` → limit toast, `504` → timeout toast, else generic; on success redirects to `/app/plans/:planId`. The weather snapshot is pulled from `useWeather` lifted to the page (same query key as the WeatherCard → one fetch). **Requires a GPX** to submit (guarded).
+  - **Viewer** ([src/pages/PlanView.tsx](src/pages/PlanView.tsx)) at `/app/plans/:id` — renders `plan_json` per [decision 0003](../fuelplan-shared/decisions/0003-plan-json-schema.md): summary, race meta + est. duration, warnings banner, 5 total tiles, then a card per phase with a subtotal row and per-item rows. Item time = `start_time + offsetMin` computed client-side (falls back to `label` when `start_time` is null).
+  - **List** ([src/pages/Plans.tsx](src/pages/Plans.tsx)) — `usePlans()` fetches the user's plans (RLS-scoped supabase `select`, ordered by race_date desc); empty state + row cards linking to the viewer.
+  - **Hooks** [src/hooks/usePlans.ts](src/hooks/usePlans.ts) — `usePlans()` + `usePlan(id)`, react-query, with `plansQueryKey` / `planQueryKey` exports.
+  - **api.ts** now supports multipart (`postForm`, skips the JSON Content-Type for FormData) and exports `errorStatus(err)` to read the HTTP status off the thrown error.
+  - **types.ts** — added `PlanJson`, `PlanPhase`, `PlanItem`, `PlanNutrientTotals`, `PlanPhaseId`; `PlanRow.plan_json` is now typed `PlanJson`.
+
 Nothing committed yet — slices are ready to commit when you want them.
 
 ## Next up
 
 - **Apply migration 0002** in Supabase SQL editor (paste contents of [fuelplan-be/migrations/0002_profile_fields.sql](../fuelplan-be/migrations/0002_profile_fields.sql)). Then end-to-end smoke test: open `/app/profile`, fill out, save, refresh, confirm values persist.
 - **`VITE_API_BASE_URL` no longer urgent** — only needed once we wire `/api/generate-plan` or other real BE calls. The [api.ts](src/lib/api.ts) wrapper now lazy-throws, so the app boots fine without it.
-- **Plan generation pipeline — handed off to backend.** Full spec written in [shared WIP](../fuelplan-shared/WIP.md): migration `0003_plan_request_params.sql`, GPX upload + server-side parse, `POST /api/plans/generate` route contract (incl. the exact FE payload shape), and two open cross-repo questions (`plan_json` output schema + sync-vs-async generation UX). **Switch to the backend agent in a new session and hand it that spec.** FE follow-ups, once the route + schema are locked:
-  - Wire `NewPlan.tsx` submit → `api.post('/api/plans/generate', …)` → redirect to `/app/plans/:id` (currently stubbed to a toast).
-  - Build `/app/plans/:id` viewer against the agreed `plan_json` schema.
-  - Build real `/app/plans` list (supabase `select`, RLS-read).
-  - Set `VITE_API_BASE_URL` once the BE is reachable.
-- **Flesh out remaining placeholder pages**. [Subscription](src/pages/Subscription.tsx) needs Stripe wiring. [Plans](src/pages/Plans.tsx) lists plans; trivial once a few exist. [Settings](src/pages/Settings.tsx) is account-level.
+- **Plan generation — FE wired, needs end-to-end verification.** Backend pipeline is reported complete (migration 0003, `POST /api/plans/generate`, `plan_json` schema locked in [decision 0003](../fuelplan-shared/decisions/0003-plan-json-schema.md)). FE side built this session (see Done). **Before it works:** apply migrations 0001–0003 to Supabase, set `VITE_API_BASE_URL` to the BE URL, run the BE, then smoke-test: fill the New plan form with a GPX → Generate → land on `/app/plans/:id`. Open assumption flagged in [shared WIP](../fuelplan-shared/WIP.md): FE currently *requires* a GPX to submit; confirm BE agrees `gpxFile` is mandatory.
+- **Flesh out remaining placeholder pages**. [Subscription](src/pages/Subscription.tsx) needs Stripe wiring. [Settings](src/pages/Settings.tsx) is account-level.
 - **Forgot password flow** — the Login page links to `/forgot-password`, which 404s. Needs a page that calls `supabase.auth.resetPasswordForEmail()` plus a `/auth/reset-password` page where the redirect lands and calls `updateUser({ password })`. Wrap both in `PublicOnlyRoute`.
 - **Supabase redirect allowlist update** — when adding the production domain, allowlist `/app` (not just `/`) so OAuth and email-confirmation redirects don't bounce.
 - **OAuth callback handling** — Supabase parses the URL hash on `onAuthStateChange`, but we should confirm the redirect to `/app` lands cleanly and consider an explicit `/auth/callback` route if we ever want a loading state during exchange.
