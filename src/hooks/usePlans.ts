@@ -24,6 +24,26 @@ export function usePlans() {
   });
 }
 
+export function useLatestPlan() {
+  const { session } = useSession();
+  const userId = session?.user.id;
+
+  return useQuery({
+    queryKey: ['plan', 'latest', userId] as const,
+    enabled: !!userId,
+    queryFn: async (): Promise<PlanRow | null> => {
+      const { data, error } = await supabase
+        .from('plans')
+        .select('*')
+        .order('created_at', { ascending: false })
+        .limit(1)
+        .maybeSingle();
+      if (error) throw error;
+      return (data ?? null) as unknown as PlanRow | null;
+    },
+  });
+}
+
 export function usePlan(id: string | undefined) {
   return useQuery({
     queryKey: planQueryKey(id),

@@ -47,7 +47,8 @@
   - **List** ([src/pages/Plans.tsx](src/pages/Plans.tsx)) — `usePlans()` fetches the user's plans (RLS-scoped supabase `select`, ordered by race_date desc); empty state + row cards linking to the viewer.
   - **Hooks** [src/hooks/usePlans.ts](src/hooks/usePlans.ts) — `usePlans()` + `usePlan(id)`, react-query, with `plansQueryKey` / `planQueryKey` exports.
   - **api.ts** now supports multipart (`postForm`, skips the JSON Content-Type for FormData) and exports `errorStatus(err)` to read the HTTP status off the thrown error.
-  - **types.ts** — added `PlanJson`, `PlanPhase`, `PlanItem`, `PlanNutrientTotals`, `PlanPhaseId`; `PlanRow.plan_json` is now typed `PlanJson`.
+  - **types.ts** — added `PlanJson`, `PlanPhase`, `PlanItem`, `PlanNutrientTotals`, `PlanPhaseId`; `PlanRow.plan_json` is now typed `PlanJson`. `PlanItem` carries `fat` + `protein` (per decision 0003 update); the viewer's item nutrient line shows them.
+  - **Dashboard latest plan** ([src/pages/Dashboard.tsx](src/pages/Dashboard.tsx)) — `/app` now renders the user's most-recently-created plan as a card (race name, date/distance/climb, summary, total carbs/fluid/sodium/kcal) linking to the viewer, via `useLatestPlan()` ([usePlans.ts](src/hooks/usePlans.ts), `created_at desc limit 1`). Falls back to the "no plans yet" empty state.
 
 Nothing committed yet — slices are ready to commit when you want them.
 
