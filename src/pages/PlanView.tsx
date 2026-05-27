@@ -66,7 +66,7 @@ export default function PlanView() {
         </div>
 
         <div className="px-6 sm:px-8">
-          <RouteSection id={id} />
+          <RouteSection id={id} lat={rp.gpxMeta?.startLat} lng={rp.gpxMeta?.startLng} date={plan.race_date} />
         </div>
 
         <div className="px-6 pt-6 sm:px-8">
@@ -110,12 +110,17 @@ export default function PlanView() {
   );
 }
 
-function RouteSection({ id }: { id: string | undefined }) {
+function RouteSection({ id, lat, lng, date }: { id: string | undefined; lat: number | undefined; lng: number | undefined; date: string | null }) {
   const { data, isLoading, isError } = useRouteTrack(id);
   const mapRef = useRef<RouteMapHandle>(null);
   const handleHover = useCallback((latlng: [number, number] | null) => {
     mapRef.current?.setCursor(latlng);
   }, []);
+  const hasCoords = lat != null && lng != null && (lat !== 0 || lng !== 0);
+  const { data: weatherData } = useWeather(hasCoords ? lat : null, hasCoords ? lng : null, date ?? '');
+  const wind = weatherData?.kind === 'forecast'
+    ? { directionDeg: weatherData.data.windDirectionDeg, speedKmh: weatherData.data.windSpeedMaxKmh }
+    : null;
 
   if (isLoading) {
     return (
@@ -133,7 +138,7 @@ function RouteSection({ id }: { id: string | undefined }) {
   }
   return (
     <>
-      <RouteMap ref={mapRef} track={data.track} profile={data.profile} />
+      <RouteMap ref={mapRef} track={data.track} profile={data.profile} wind={wind} />
       {data.profile && data.profile.length >= 2 && (
         <ElevationProfile points={data.profile} climbs={data.climbs} onHover={handleHover} />
       )}
@@ -142,7 +147,7 @@ function RouteSection({ id }: { id: string | undefined }) {
           <p className="mb-2 text-[10px] font-semibold uppercase tracking-[0.18em] text-zinc-400">
             Climb breakdown
           </p>
-          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
             {data.climbs.map((climb, i) => (
               <ClimbCard key={i} climb={climb} index={i} points={data.profile!} />
             ))}

@@ -1,7 +1,7 @@
 import { gradientZone, ZONE_COLOR, CAT_COLOR, smoothedSlopePct, type ElevationPoint, type Climb } from '../lib/gpx';
 
 const W = 1000;
-const H = 280;
+const H = 420;
 const PAD = { top: 10, right: 68, bottom: 10, left: 6 };
 const PLOT_W = W - PAD.left - PAD.right;
 const PLOT_H = H - PAD.top - PAD.bottom;

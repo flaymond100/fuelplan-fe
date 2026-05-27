@@ -2,6 +2,7 @@ import { forwardRef, useCallback, useEffect, useImperativeHandle, useRef } from 
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import { gradientZone, ZONE_COLOR, smoothedSlopePct, type ElevationPoint } from '../lib/gpx';
+import { degToCompass } from '../lib/weather';
 
 export type RouteMapHandle = {
   setCursor: (latlng: [number, number] | null) => void;
@@ -10,9 +11,10 @@ export type RouteMapHandle = {
 interface Props {
   track: [number, number][];
   profile?: ElevationPoint[] | null;
+  wind?: { directionDeg: number; speedKmh: number } | null;
 }
 
-const RouteMap = forwardRef<RouteMapHandle, Props>(({ track, profile }, ref) => {
+const RouteMap = forwardRef<RouteMapHandle, Props>(({ track, profile, wind }, ref) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const cursorRef = useRef<L.CircleMarker | null>(null);
   const mapRef = useRef<L.Map | null>(null);
@@ -109,6 +111,30 @@ const RouteMap = forwardRef<RouteMapHandle, Props>(({ track, profile }, ref) => 
           −
         </button>
       </div>
+      {wind && (
+        <div className="absolute bottom-3 left-3 flex items-center gap-2 rounded-lg bg-white/90 px-3 py-2 shadow-md backdrop-blur-sm">
+          <svg
+            viewBox="0 0 24 24"
+            className="h-6 w-6 shrink-0 text-amber-400"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            style={{ transform: `rotate(${wind.directionDeg + 180}deg)` }}
+          >
+            <path d="M12 3v18M6 9l6-6 6 6" />
+          </svg>
+          <div>
+            <p className="text-xs font-semibold leading-none text-zinc-800">
+              {Math.round(wind.speedKmh)} km/h
+            </p>
+            <p className="mt-0.5 text-[10px] leading-none text-zinc-500">
+              from {degToCompass(wind.directionDeg)}
+            </p>
+          </div>
+        </div>
+      )}
     </div>
   );
 });
