@@ -6,6 +6,7 @@ export type WeatherForecast = {
   tempMinC: number;
   precipitationProbabilityPct: number;
   windSpeedMaxKmh: number;
+  windDirectionDeg: number;
   weatherCode: number;
 };
 
@@ -43,6 +44,7 @@ export async function fetchWeather(
       'temperature_2m_min',
       'precipitation_probability_max',
       'wind_speed_10m_max',
+      'wind_direction_10m_dominant',
       'weather_code',
     ].join(','),
   );
@@ -59,6 +61,7 @@ export async function fetchWeather(
       temperature_2m_min: number[];
       precipitation_probability_max: number[];
       wind_speed_10m_max: number[];
+      wind_direction_10m_dominant: number[];
       weather_code: number[];
     };
   };
@@ -76,9 +79,17 @@ export async function fetchWeather(
       tempMinC: daily.temperature_2m_min[0],
       precipitationProbabilityPct: daily.precipitation_probability_max[0] ?? 0,
       windSpeedMaxKmh: daily.wind_speed_10m_max[0],
+      windDirectionDeg: daily.wind_direction_10m_dominant[0] ?? 0,
       weatherCode: daily.weather_code[0],
     },
   };
+}
+
+const COMPASS = ['N', 'NE', 'E', 'SE', 'S', 'SW', 'W', 'NW'];
+
+/** Compass label for a "wind comes FROM" bearing in degrees. */
+export function degToCompass(deg: number): string {
+  return COMPASS[Math.round(((deg % 360) / 45)) % 8];
 }
 
 export function tempToCategory(tempMaxC: number): TempCategory {

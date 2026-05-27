@@ -36,6 +36,7 @@ export interface ProfileRow {
 // ── plan_json schema (see decisions/0003-plan-json-schema.md) ───────────────
 
 export type PlanPhaseId =
+  | 'pre_race_d3'
   | 'pre_race_d2'
   | 'pre_race_d1'
   | 'pre_race_morning'
@@ -54,8 +55,10 @@ export interface PlanItem extends PlanNutrientTotals {
   offsetMin: number;
   label: string;
   what: string;
-  fat: number;
-  protein: number;
+  // Backend persists macros as fatG / proteinG (see planGenerator.ts validateItem),
+  // which diverges from decision 0003's "fat"/"protein". Matching deployed reality.
+  fatG: number;
+  proteinG: number;
   notes: string | null;
 }
 
@@ -77,6 +80,24 @@ export interface PlanJson {
   warnings: string[];
 }
 
+export interface PlanRequestParams {
+  discipline?: string;
+  effortLevel?: string;
+  targetFinishTime?: string;
+  aidStations?: string;
+  planWindow?: '24h' | '48h' | '72h';
+  carbsOverride?: number | null;
+  caffeine?: string;
+  weather?: {
+    tempMaxC: number;
+    tempMinC: number;
+    precipitationProbabilityPct: number;
+    windSpeedMaxKmh: number;
+    weatherCode: number;
+  } | null;
+  gpxMeta?: { startLat: number; startLng: number; pointCount: number };
+}
+
 export interface PlanRow {
   id: string;
   user_id: string;
@@ -87,6 +108,7 @@ export interface PlanRow {
   start_time: string | null;
   gpx_file_path: string | null;
   plan_json: PlanJson;
+  request_params: PlanRequestParams;
   created_at: string;
 }
 

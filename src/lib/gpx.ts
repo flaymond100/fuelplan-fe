@@ -58,6 +58,30 @@ export async function parseGpx(file: File): Promise<GpxSummary> {
   };
 }
 
+/** Extracts the track as a list of [lat, lng] pairs for map rendering. */
+export function extractGpxTrack(text: string, maxPoints = 1500): [number, number][] {
+  const doc = new DOMParser().parseFromString(text, 'application/xml');
+  if (doc.querySelector('parsererror')) {
+    throw new Error("That doesn't look like a valid GPX file.");
+  }
+
+  const points = Array.from(doc.querySelectorAll('trkpt'));
+  const coords: [number, number][] = [];
+  for (const pt of points) {
+    const lat = Number(pt.getAttribute('lat'));
+    const lng = Number(pt.getAttribute('lon'));
+    if (Number.isFinite(lat) && Number.isFinite(lng)) coords.push([lat, lng]);
+  }
+
+  // Decimate evenly so the polyline stays light on mobile while keeping endpoints.
+  if (coords.length <= maxPoints) return coords;
+  const step = Math.ceil(coords.length / maxPoints);
+  const out: [number, number][] = [];
+  for (let i = 0; i < coords.length; i += step) out.push(coords[i]);
+  if (out[out.length - 1] !== coords[coords.length - 1]) out.push(coords[coords.length - 1]);
+  return out;
+}
+
 function haversine(lat1: number, lng1: number, lat2: number, lng2: number): number {
   const R = 6371000;
   const toRad = (d: number) => (d * Math.PI) / 180;
