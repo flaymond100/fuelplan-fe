@@ -167,11 +167,11 @@ export default function ElevationProfile({ points, climbs, onHover }: Props) {
           const sy = yScale(summitElev);
           const color = CAT_COLOR[climb.category];
           const label = climb.category === 'HC' ? 'HC' : `Cat ${climb.category}`;
-          const bx = Math.min(Math.max(sx, PAD.left + 30), W - PAD.right - 30);
+          const bx = Math.min(Math.max(sx, PAD.left + 46), W - PAD.right - 46);
           return (
             <g key={i}>
               <line x1={bx} y1={48} x2={sx} y2={sy} stroke={color} strokeWidth="1" strokeDasharray="3 3" opacity="0.7" />
-              <rect x={bx - 30} y={4} width={60} height={42} rx="4" fill={color} />
+              <rect x={bx - 46} y={4} width={92} height={42} rx="4" fill={color} />
               <text x={bx} y={18} textAnchor="middle" fontSize="12" fontWeight="700" fill="white">{label}</text>
               <text x={bx} y={31} textAnchor="middle" fontSize="10" fill="rgba(255,255,255,0.9)">{climb.lengthKm} km · {climb.avgGradientPct}%</text>
               <text x={bx} y={42} textAnchor="middle" fontSize="9" fill="rgba(255,255,255,0.75)">max {climb.maxGradientPct}%</text>

@@ -1,8 +1,8 @@
 import { gradientZone, ZONE_COLOR, CAT_COLOR, smoothedSlopePct, type ElevationPoint, type Climb } from '../lib/gpx';
 
 const W = 1000;
-const H = 420;
-const PAD = { top: 10, right: 68, bottom: 10, left: 6 };
+const H = 448;
+const PAD = { top: 10, right: 68, bottom: 38, left: 6 };
 const PLOT_W = W - PAD.left - PAD.right;
 const PLOT_H = H - PAD.top - PAD.bottom;
 
@@ -91,6 +91,13 @@ export default function ClimbCard({ climb, index, points }: Props) {
     `${i === 0 ? 'M' : 'L'} ${xF(p.distanceKm)} ${yF(p.elevationM)}`,
   ).join(' ');
 
+  // 1km vertical dividers
+  const kmDividers: { x: number; y: number }[] = [];
+  for (let k = 1; k < lenKm; k++) {
+    const pt = nearestPt(climbPts, sd + k);
+    kmDividers.push({ x: xF(sd + k), y: yF(pt.elevationM) });
+  }
+
   // Right-side elevation ticks
   const elevStep = niceElevStep(elevRange);
   const elevTicks: number[] = [];
@@ -125,6 +132,13 @@ export default function ClimbCard({ climb, index, points }: Props) {
         ))}
 
         {traps.map((t, i) => <path key={i} d={t.d} fill={t.color} fillOpacity="0.85" />)}
+
+        {kmDividers.map((d, i) => (
+          <g key={i}>
+            <line x1={d.x} y1={d.y} x2={d.x} y2={baseY} stroke="#18181b" strokeWidth="0.8" opacity="0.18" />
+            <text x={d.x} y={baseY + 20} textAnchor="middle" fontSize="13" fill="#a1a1aa">{i + 1}</text>
+          </g>
+        ))}
 
         <path d={profileD} fill="none" stroke="#18181b" strokeWidth="1.2" strokeLinejoin="round" opacity="0.4" />
 

@@ -222,13 +222,29 @@ export function detectClimbs(points: ElevationPoint[]): Climb[] {
   let maxGrad = 0;
 
   function finishClimb(endIdx: number) {
-    const gain = computeGain(smoothElev, climbStartIdx, endIdx);
-    const lengthKm = points[endIdx].distanceKm - points[climbStartIdx].distanceKm;
+    // Trim leading 1km segments that average < 4% — approach roads shouldn't count
+    const TRIM_THRESHOLD = 4.0;
+    let startIdx = climbStartIdx;
+    while (startIdx < endIdx - 1) {
+      const d0 = points[startIdx].distanceKm;
+      // Find the index closest to d0 + 1km
+      let nextIdx = startIdx + 1;
+      while (nextIdx < endIdx && points[nextIdx].distanceKm < d0 + 1.0) nextIdx++;
+      if (nextIdx >= endIdx) break;
+      const distM = (points[nextIdx].distanceKm - points[startIdx].distanceKm) * 1000;
+      const elevDiff = smoothElev[nextIdx] - smoothElev[startIdx];
+      const segGrad = distM > 1 ? (elevDiff / distM) * 100 : 0;
+      if (segGrad >= TRIM_THRESHOLD) break;
+      startIdx = nextIdx;
+    }
+
+    const gain = computeGain(smoothElev, startIdx, endIdx);
+    const lengthKm = points[endIdx].distanceKm - points[startIdx].distanceKm;
     const avgGrad = lengthKm > 0 ? (gain / (lengthKm * 1000)) * 100 : 0;
     const cat = climbCategory(gain, avgGrad);
     if (cat !== null && gain >= MIN_GAIN_M) {
       climbs.push({
-        startDistKm: parseFloat(points[climbStartIdx].distanceKm.toFixed(1)),
+        startDistKm: parseFloat(points[startIdx].distanceKm.toFixed(1)),
         endDistKm: parseFloat(points[peakIdx].distanceKm.toFixed(1)),
         peakLat: points[peakIdx].lat,
         peakLng: points[peakIdx].lng,
