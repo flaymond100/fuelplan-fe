@@ -127,6 +127,7 @@ export default function PlanDays({ plan }: Props) {
 
   return (
     <div>
+      <h2 className="text-3xl mb-4 font-bold text-zinc-900">Nutrition</h2>
       {/* Tabs */}
       <div className="flex flex-wrap gap-1.5">
         {days.map((d, i) => (

@@ -1,6 +1,6 @@
 // ── DB row types (snake_case, mirrors Supabase schema) ──────────────────────
 
-export type Discipline = 'cycling';
+export type Discipline = 'cycling' | 'running';
 export type Sex = 'female' | 'male' | 'other' | 'prefer_not_to_say';
 export type SweatRate = 'low' | 'medium' | 'high';
 export type CaffeineTolerance = 'none' | 'low' | 'high';

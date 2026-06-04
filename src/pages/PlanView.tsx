@@ -1,14 +1,16 @@
-import { useCallback, useMemo, useRef } from 'react';
+import { useCallback, useMemo, useRef, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import RouteMap, { type RouteMapHandle } from '../components/RouteMap';
 import ElevationProfile from '../components/ElevationProfile';
 import ClimbCard from '../components/ClimbCard';
 import PlanDays from '../components/PlanDays';
+import TrainingLoadPanel from '../components/TrainingLoadPanel';
 import { usePlan, useRouteTrack } from '../hooks/usePlans';
 import { useWeather } from '../hooks/useWeather';
 import { degToCompass } from '../lib/weather';
 import { bearingDeg, estimateDraft, type DraftEstimate } from '../lib/draft';
 import { formatDate } from '../lib/profileFormat';
+import type { PlanNutrientTotals } from '../types';
 
 export default function PlanView() {
   const { id } = useParams<{ id: string }>();
@@ -66,6 +68,8 @@ export default function PlanView() {
           </div>
         </div>
 
+       
+
         <div className="mt-6">
           <WeatherSection
             lat={rp.gpxMeta?.startLat}
@@ -86,12 +90,12 @@ export default function PlanView() {
           />
         </div>
 
-        <div className="mt-6 grid grid-cols-2 gap-px overflow-hidden rounded-xl border border-zinc-200 bg-zinc-200 sm:grid-cols-3 lg:grid-cols-5">
-          <MetricTile label="Carbs" value={p.totals.carbsG} unit="g" />
-          <MetricTile label="Fluids" value={p.totals.fluidsMl} unit="ml" />
-          <MetricTile label="Sodium" value={p.totals.sodiumMg} unit="mg" />
-          <MetricTile label="Caffeine" value={p.totals.caffeineMg} unit="mg" />
-          <MetricTile label="Energy" value={p.totals.kcal} unit="kcal" />
+        <div className="mt-6">
+          <TrainingLoadPanel />
+        </div>
+        <div className="mt-6">
+        
+          <NutritionTotals totals={p.totals} />
         </div>
 
         <div className="mt-6">
@@ -266,6 +270,43 @@ function WeatherSection({
         }
       />
       <WeatherTile label="Rain" main={`${f.precipitationProbabilityPct}%`} icon={<Droplet />} />
+    </div>
+  );
+}
+
+function NutritionTotals({ totals }: { totals: PlanNutrientTotals }) {
+  const [open, setOpen] = useState(false);
+  return (
+    <div>
+      <button
+        type="button"
+        onClick={() => setOpen((v) => !v)}
+        aria-expanded={open}
+        className="inline-flex items-center gap-2 text-sm font-semibold text-zinc-700 transition hover:text-zinc-900"
+      >
+        <svg
+          viewBox="0 0 20 20"
+          fill="currentColor"
+          className={`h-4 w-4 text-zinc-400 transition-transform ${open ? 'rotate-90' : ''}`}
+        >
+          <path
+            fillRule="evenodd"
+            d="M7.21 14.77a.75.75 0 0 1 .02-1.06L11.168 10 7.23 6.29a.75.75 0 1 1 1.04-1.08l4.5 4.25a.75.75 0 0 1 0 1.08l-4.5 4.25a.75.75 0 0 1-1.06-.02Z"
+            clipRule="evenodd"
+          />
+        </svg>
+        Nutrition totals
+      </button>
+
+      {open && (
+        <div className="mt-3 grid grid-cols-2 gap-px overflow-hidden rounded-xl border border-zinc-200 bg-zinc-200 sm:grid-cols-3 lg:grid-cols-5">
+          <MetricTile label="Carbs" value={totals.carbsG} unit="g" />
+          <MetricTile label="Fluids" value={totals.fluidsMl} unit="ml" />
+          <MetricTile label="Sodium" value={totals.sodiumMg} unit="mg" />
+          <MetricTile label="Caffeine" value={totals.caffeineMg} unit="mg" />
+          <MetricTile label="Energy" value={totals.kcal} unit="kcal" />
+        </div>
+      )}
     </div>
   );
 }
