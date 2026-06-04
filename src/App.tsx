@@ -10,6 +10,7 @@ import PlanView from './pages/PlanView';
 import NewPlan from './pages/NewPlan';
 import Profile from './pages/Profile';
 import ProfileEdit from './pages/ProfileEdit';
+import StravaCallback from './pages/StravaCallback';
 import Subscription from './pages/Subscription';
 import Settings from './pages/Settings';
 import RequireAuth from './components/RequireAuth';
@@ -57,6 +58,7 @@ export default function App() {
             <Route path="profile/edit" element={<ProfileEdit />} />
             <Route path="subscription" element={<Subscription />} />
             <Route path="settings" element={<Settings />} />
+            <Route path="strava/callback" element={<StravaCallback />} />
           </Route>
         </Routes>
       </BrowserRouter>

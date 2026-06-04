@@ -1,8 +1,10 @@
-import { useState, type SyntheticEvent } from 'react';
+import { useEffect, useRef, useState, type SyntheticEvent } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useQueryClient } from '@tanstack/react-query';
 import toast from 'react-hot-toast';
 import PageHeader from '../components/PageHeader';
+import { api, errorStatus } from '../lib/api';
+import { useStravaStatus, useInvalidateStravaStatus } from '../hooks/useStravaStatus';
 import { supabase } from '../lib/supabase';
 import { useSession } from '../hooks/useSession';
 import { profileQueryKey, useProfile } from '../hooks/useProfile';
@@ -135,7 +137,14 @@ function ProfileEditForm({ initial }: { initial: ProfileRow | null }) {
   const { session } = useSession();
   const userId = session?.user.id;
   const [form, setForm] = useState<FormState>(() => (initial ? rowToForm(initial) : EMPTY_FORM));
+  const hasHydratedFromInitial = useRef<boolean>(!!initial);
   const [saving, setSaving] = useState(false);
+
+  useEffect(() => {
+    if (!initial || hasHydratedFromInitial.current) return;
+    setForm(rowToForm(initial));
+    hasHydratedFromInitial.current = true;
+  }, [initial]);
 
   function update<K extends keyof FormState>(key: K, value: FormState[K]) {
     setForm((prev) => ({ ...prev, [key]: value }));
@@ -189,7 +198,7 @@ function ProfileEditForm({ initial }: { initial: ProfileRow | null }) {
   }
 
   const showCycling = form.disciplines.has('cycling');
-  const showRunning = form.disciplines.has('running');
+  // const showRunning = form.disciplines.has('running');
 
   return (
     <div>
@@ -279,13 +288,13 @@ function ProfileEditForm({ initial }: { initial: ProfileRow | null }) {
         >
           <Field label="Disciplines">
             <div className="flex flex-wrap gap-2">
-              {(['cycling', 'running'] as Discipline[]).map((d) => (
+              {(['cycling'] as Discipline[]).map((d) => (
                 <ChipButton
                   key={d}
                   active={form.disciplines.has(d)}
                   onClick={() => update('disciplines', toggle(form.disciplines, d))}
                 >
-                  {d === 'cycling' ? 'Cycling' : 'Running'}
+                  {d === 'cycling' ? 'Cycling' : ''}
                 </ChipButton>
               ))}
             </div>
@@ -310,7 +319,7 @@ function ProfileEditForm({ initial }: { initial: ProfileRow | null }) {
                 />
               </Field>
             )}
-            {showRunning && (
+            {/* {showRunning && (
               <Field
                 label="Running threshold pace"
                 hint="Sustainable threshold pace, mm:ss per km."
@@ -327,7 +336,7 @@ function ProfileEditForm({ initial }: { initial: ProfileRow | null }) {
                   placeholder="e.g. 4:30"
                 />
               </Field>
-            )}
+            )} */}
             <Field label="Max heart rate (bpm)" htmlFor="maxHr">
               <input
                 id="maxHr"
@@ -498,6 +507,8 @@ function ProfileEditForm({ initial }: { initial: ProfileRow | null }) {
           </Field>
         </Section>
 
+        <StravaSection />
+
         <div className="flex items-center justify-end gap-3 pt-2">
           <Link
             to="/app/profile"
@@ -515,6 +526,94 @@ function ProfileEditForm({ initial }: { initial: ProfileRow | null }) {
         </div>
       </form>
     </div>
+  );
+}
+
+function StravaSection() {
+  const { data: status, isLoading } = useStravaStatus();
+  const invalidate = useInvalidateStravaStatus();
+  const [connecting, setConnecting] = useState(false);
+  const [disconnecting, setDisconnecting] = useState(false);
+
+  async function handleConnect() {
+    setConnecting(true);
+    try {
+      const { authUrl } = await api.get<{ authUrl: string }>('/api/integrations/strava/connect');
+      window.location.href = authUrl;
+    } catch {
+      toast.error('Could not start Strava connection. Please try again.');
+      setConnecting(false);
+    }
+  }
+
+  async function handleDisconnect() {
+    setDisconnecting(true);
+    try {
+      await api.delete('/api/integrations/strava');
+      invalidate();
+      toast.success('Strava disconnected.');
+    } catch (err) {
+      toast.error(errorStatus(err) === 401 ? 'Session expired.' : 'Could not disconnect Strava.');
+    } finally {
+      setDisconnecting(false);
+    }
+  }
+
+  const connected = status?.connected === true;
+
+  return (
+    <section className="rounded-sm border border-zinc-200 bg-white p-6">
+      <header className="mb-5">
+        <h2 className="text-base font-semibold text-zinc-900">Connected apps</h2>
+        <p className="mt-1 text-sm text-zinc-500">
+          Connect Strava to pull your last 3 days of activities into every plan you generate.
+        </p>
+      </header>
+
+      <div className="flex items-center justify-between gap-4 rounded-lg border border-zinc-200 bg-zinc-50 px-4 py-3">
+        <div className="flex items-center gap-3">
+          {/* Strava wordmark colour */}
+          <svg viewBox="0 0 24 24" className="h-7 w-7 shrink-0" fill="none">
+            <path d="M10.5 17.5 6 9l-4.5 8.5h3L6 13l1.5 4.5Z" fill="#FC4C02" />
+            <path d="M15 9l-3 8.5h2.25L15 13.5l.75 4h2.25L15 9Z" fill="#FC4C02" />
+          </svg>
+          <div>
+            <p className="text-sm font-semibold text-zinc-900">Strava</p>
+            {isLoading ? (
+              <p className="text-xs text-zinc-400">Checking…</p>
+            ) : connected ? (
+              <p className="text-xs text-emerald-600">
+                Connected{status.athleteName ? ` as ${status.athleteName}` : ''}
+              </p>
+            ) : (
+              <p className="text-xs text-zinc-400">Not connected</p>
+            )}
+          </div>
+        </div>
+
+        {!isLoading && (
+          connected ? (
+            <button
+              type="button"
+              onClick={handleDisconnect}
+              disabled={disconnecting}
+              className="rounded-full border border-zinc-300 bg-white px-4 py-1.5 text-xs font-semibold text-zinc-600 transition hover:border-rose-300 hover:text-rose-600 disabled:opacity-50"
+            >
+              {disconnecting ? 'Disconnecting…' : 'Disconnect'}
+            </button>
+          ) : (
+            <button
+              type="button"
+              onClick={handleConnect}
+              disabled={connecting}
+              className="rounded-full bg-[#FC4C02] px-4 py-1.5 text-xs font-semibold text-white transition hover:brightness-110 disabled:opacity-50"
+            >
+              {connecting ? 'Redirecting…' : 'Connect Strava'}
+            </button>
+          )
+        )}
+      </div>
+    </section>
   );
 }
 

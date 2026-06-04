@@ -14,6 +14,8 @@ type Caffeine = 'skip' | 'standard' | 'heavy';
 type AidStations = 'none' | 'sparse' | 'frequent';
 type PlanWindow = '24h' | '48h' | '72h';
 
+type TrainingNotes = { minus1: string; minus2: string; minus3: string };
+
 type FormState = {
   raceName: string;
   raceDate: string;
@@ -28,6 +30,7 @@ type FormState = {
   planWindow: PlanWindow;
   carbsOverride: string;
   caffeine: Caffeine | '';
+  trainingNotes: TrainingNotes;
 };
 
 const EMPTY_FORM: FormState = {
@@ -44,6 +47,7 @@ const EMPTY_FORM: FormState = {
   planWindow: '72h',
   carbsOverride: '',
   caffeine: '',
+  trainingNotes: { minus1: '', minus2: '', minus3: '' },
 };
 
 const EFFORT_LABELS: Record<EffortLevel, string> = {
@@ -154,6 +158,11 @@ export default function NewPlan() {
       carbsOverride: form.carbsOverride ? Number(form.carbsOverride) : null,
       caffeine: form.caffeine || null,
       weather,
+      trainingNotes: {
+        ...(form.trainingNotes?.minus3?.trim() && { minus3: form.trainingNotes.minus3.trim() }),
+        ...(form.trainingNotes?.minus2?.trim() && { minus2: form.trainingNotes.minus2.trim() }),
+        ...(form.trainingNotes?.minus1?.trim() && { minus1: form.trainingNotes.minus1.trim() }),
+      },
       gpx: {
         startLat: gpxSummary.startLat,
         startLng: gpxSummary.startLng,
@@ -430,6 +439,13 @@ export default function NewPlan() {
           </Field>
         </Section>
 
+        <TrainingContextSection
+          planWindow={form.planWindow}
+          raceDate={form.raceDate}
+          notes={form.trainingNotes}
+          onChange={(notes) => update('trainingNotes', notes)}
+        />
+
         <div className="flex items-center justify-end gap-3 pt-2">
           {submitting && (
             <span className="mr-auto text-sm text-zinc-500">This can take up to 2 minutes…</span>
@@ -466,6 +482,66 @@ function Spinner() {
       <circle cx="12" cy="12" r="10" stroke="currentColor" strokeOpacity="0.25" strokeWidth="4" />
       <path d="M4 12a8 8 0 0 1 8-8" stroke="currentColor" strokeWidth="4" strokeLinecap="round" />
     </svg>
+  );
+}
+
+const WINDOW_SLOTS: Record<PlanWindow, Array<{ key: keyof TrainingNotes; daysOut: number }>> = {
+  '72h': [{ key: 'minus3', daysOut: 3 }, { key: 'minus2', daysOut: 2 }, { key: 'minus1', daysOut: 1 }],
+  '48h': [{ key: 'minus2', daysOut: 2 }, { key: 'minus1', daysOut: 1 }],
+  '24h': [{ key: 'minus1', daysOut: 1 }],
+};
+
+const PLACEHOLDERS: Record<keyof TrainingNotes, string> = {
+  minus3: 'e.g. 2h zone 2 ride at 200W — or "rest day"',
+  minus2: 'e.g. 45 min easy run, keep HR below 140',
+  minus1: 'e.g. 20 min activation spin, high cadence, then rest',
+};
+
+function slotLabel(daysOut: number, raceDate: string): string {
+  const suffix = daysOut === 1 ? 'day' : 'days';
+  if (!raceDate) return `${daysOut} ${suffix} before race`;
+  const d = new Date(`${raceDate}T12:00:00`);
+  if (isNaN(d.getTime())) return `${daysOut} ${suffix} before race`;
+  d.setDate(d.getDate() - daysOut);
+  const weekday = d.toLocaleDateString(undefined, { weekday: 'short' });
+  const date = d.toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
+  return `${weekday} ${date} — ${daysOut} ${suffix} before`;
+}
+
+function TrainingContextSection({
+  planWindow,
+  raceDate,
+  notes,
+  onChange,
+}: {
+  planWindow: PlanWindow;
+  raceDate: string;
+  notes: TrainingNotes;
+  onChange: (n: TrainingNotes) => void;
+}) {
+  const slots = WINDOW_SLOTS[planWindow];
+  return (
+    <Section
+      title="Planned training in the lead-up"
+      subtitle="Optional — what are you planning to do each day before the race? The AI will factor this into fatigue, carb loading, and pacing."
+    >
+      <div className="space-y-4">
+        {slots.map(({ key, daysOut }) => (
+          <div key={key}>
+            <label className="block text-xs font-semibold text-zinc-500">
+              {slotLabel(daysOut, raceDate)}
+            </label>
+            <textarea
+              rows={2}
+              value={notes[key]}
+              onChange={(e) => onChange({ ...notes, [key]: e.target.value })}
+              className="mt-1.5 block w-full rounded-lg border border-zinc-300 bg-white px-3 py-2 text-sm text-zinc-900 placeholder-zinc-400 transition focus:border-amber-500 focus:outline-none focus:ring-2 focus:ring-amber-500/30"
+              placeholder={PLACEHOLDERS[key]}
+            />
+          </div>
+        ))}
+      </div>
+    </Section>
   );
 }
 
