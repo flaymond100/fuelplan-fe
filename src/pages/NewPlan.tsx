@@ -31,6 +31,7 @@ type FormState = {
   carbsOverride: string;
   caffeine: Caffeine | '';
   trainingNotes: TrainingNotes;
+  additionalNotes: string;
 };
 
 const EMPTY_FORM: FormState = {
@@ -48,6 +49,7 @@ const EMPTY_FORM: FormState = {
   carbsOverride: '',
   caffeine: '',
   trainingNotes: { minus1: '', minus2: '', minus3: '' },
+  additionalNotes: '',
 };
 
 const EFFORT_LABELS: Record<EffortLevel, string> = {
@@ -163,6 +165,7 @@ export default function NewPlan() {
         ...(form.trainingNotes?.minus2?.trim() && { minus2: form.trainingNotes.minus2.trim() }),
         ...(form.trainingNotes?.minus1?.trim() && { minus1: form.trainingNotes.minus1.trim() }),
       },
+      additionalNotes: form.additionalNotes?.trim() || null,
       gpx: {
         startLat: gpxSummary.startLat,
         startLng: gpxSummary.startLng,
@@ -444,6 +447,8 @@ export default function NewPlan() {
           raceDate={form.raceDate}
           notes={form.trainingNotes}
           onChange={(notes) => update('trainingNotes', notes)}
+          additionalNotes={form.additionalNotes}
+          onAdditionalChange={(v) => update('additionalNotes', v)}
         />
 
         <div className="flex items-center justify-end gap-3 pt-2">
@@ -513,13 +518,19 @@ function TrainingContextSection({
   raceDate,
   notes,
   onChange,
+  additionalNotes,
+  onAdditionalChange,
 }: {
   planWindow: PlanWindow;
   raceDate: string;
   notes: TrainingNotes;
   onChange: (n: TrainingNotes) => void;
+  additionalNotes: string;
+  onAdditionalChange: (v: string) => void;
 }) {
   const slots = WINDOW_SLOTS[planWindow];
+  const textareaClass =
+    'mt-1.5 block w-full rounded-lg border border-zinc-300 bg-white px-3 py-2 text-sm text-zinc-900 placeholder-zinc-400 transition focus:border-amber-500 focus:outline-none focus:ring-2 focus:ring-amber-500/30';
   return (
     <Section
       title="Planned training in the lead-up"
@@ -535,11 +546,28 @@ function TrainingContextSection({
               rows={2}
               value={notes[key]}
               onChange={(e) => onChange({ ...notes, [key]: e.target.value })}
-              className="mt-1.5 block w-full rounded-lg border border-zinc-300 bg-white px-3 py-2 text-sm text-zinc-900 placeholder-zinc-400 transition focus:border-amber-500 focus:outline-none focus:ring-2 focus:ring-amber-500/30"
+              className={textareaClass}
               placeholder={PLACEHOLDERS[key]}
             />
           </div>
         ))}
+
+        <div className="border-t border-zinc-100 pt-4">
+          <label htmlFor="additionalNotes" className="block text-xs font-semibold text-zinc-500">
+            Anything else we should account for?
+          </label>
+          <p className="mt-0.5 text-xs text-zinc-400">
+            Logistics, travel, sleep, venue food — anything that affects fuelling. The AI reads this as free text.
+          </p>
+          <textarea
+            id="additionalNotes"
+            rows={3}
+            value={additionalNotes}
+            onChange={(e) => onAdditionalChange(e.target.value)}
+            className={textareaClass}
+            placeholder="e.g. driving 8h to the event the day before · 5am alarm, breakfast at 5:30 · only gas-station food en route · sharing a hotel room, sleep may be short · vegetarian"
+          />
+        </div>
       </div>
     </Section>
   );

@@ -59,6 +59,8 @@
 
 - **Pre-existing build fix** (not part of the Strava task): [src/types.ts](src/types.ts) had `Discipline = 'cycling'` (running dropped from the union), which broke `npm run build` at [src/pages/Profile.tsx:40](src/pages/Profile.tsx#L40) (`disciplines.includes('running')`). `tsc --noEmit` missed it; `tsc -b` caught it. Restored `Discipline = 'cycling' | 'running'` — consistent with the brief ("cycling and running"), NewPlan's discipline picker (which already offers running), and Profile's running sections. No decision file cuts scope to cycling-only. If cycling-only *was* intended, revert this one line and instead remove the running references in Profile/NewPlan.
 
+- **Free-text "anything else" field** (2026-06-04) in the "Planned training in the lead-up" section of [src/pages/NewPlan.tsx](src/pages/NewPlan.tsx). New `additionalNotes` form field + textarea (under the per-day training slots) for logistics/context the AI should account for — "driving 8h to the event", wake/breakfast times, venue/en-route food, dietary constraints, etc. Sent in the generate payload as `additionalNotes: string | null` (trimmed, optional-chained against stale state like `trainingNotes`). BE injects it into the Claude prompt — see [fuelplan-be/WIP.md](../fuelplan-be/WIP.md).
+
 Nothing committed yet — slices are ready to commit when you want them.
 
 ## Next up
