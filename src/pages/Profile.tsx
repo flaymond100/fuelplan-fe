@@ -1,5 +1,6 @@
 import { Link } from 'react-router-dom';
 import PageHeader from '../components/PageHeader';
+import { Card, Pill, buttonClass } from '../components/ui';
 import { useProfile } from '../hooks/useProfile';
 import {
   FUEL_FORM_LABELS,
@@ -14,22 +15,20 @@ export default function Profile() {
 
   if (isLoading) {
     return (
-      <div>
+      <div className="space-y-8">
         <Header />
-        <div className="mt-8 rounded-sm border border-zinc-200 bg-white p-12 text-center text-sm text-zinc-500">
-          Loading…
-        </div>
+        <Card className="p-12 text-center text-sm text-zinc-500">Loading…</Card>
       </div>
     );
   }
 
   if (isError) {
     return (
-      <div>
+      <div className="space-y-8">
         <Header />
-        <div className="mt-8 rounded-sm border border-rose-200 bg-rose-50 p-6 text-sm text-rose-700">
+        <Card className="p-6 text-sm text-rose-700">
           Could not load your profile. Refresh to try again.
-        </div>
+        </Card>
       </div>
     );
   }
@@ -43,10 +42,10 @@ export default function Profile() {
   const supplements = p?.supplements ?? [];
 
   return (
-    <div>
+    <div className="space-y-8">
       <Header />
 
-      <div className="mt-8 space-y-6">
+      <div className="space-y-6">
         <Section title="About you">
           <Detail label="Full name" value={p?.full_name} />
           <Detail label="Date of birth" value={formatDate(p?.birth_date)} muted={!p?.birth_date} />
@@ -136,30 +135,27 @@ export default function Profile() {
 
 function Header() {
   return (
-    <div className="flex flex-wrap items-start justify-between gap-4">
-      <PageHeader
-        title="Profile"
-        subtitle="Body, training, fuelling, and dietary preferences."
-      />
-      <Link
-        to="/app/profile/edit"
-        className="inline-flex items-center gap-2 rounded-full bg-gradient-to-br from-amber-400 to-orange-600 px-5 py-2.5 text-sm font-semibold text-zinc-950 shadow-lg shadow-orange-600/20 transition hover:shadow-orange-500/40 hover:brightness-110"
-      >
-        <svg viewBox="0 0 20 20" fill="currentColor" className="h-4 w-4">
-          <path d="M14.69 2.66a2.25 2.25 0 0 1 3.18 3.18l-9.6 9.6a2 2 0 0 1-.86.51l-3.21.92a.75.75 0 0 1-.93-.93l.92-3.21a2 2 0 0 1 .51-.86l9.99-9.21Z" />
-        </svg>
-        Edit profile
-      </Link>
-    </div>
+    <PageHeader
+      title="Profile"
+      subtitle="Body, training, fuelling, and dietary preferences."
+      action={
+        <Link to="/app/profile/edit" className={buttonClass('primary')}>
+          <svg viewBox="0 0 20 20" fill="currentColor" className="h-4 w-4">
+            <path d="M14.69 2.66a2.25 2.25 0 0 1 3.18 3.18l-9.6 9.6a2 2 0 0 1-.86.51l-3.21.92a.75.75 0 0 1-.93-.93l.92-3.21a2 2 0 0 1 .51-.86l9.99-9.21Z" />
+          </svg>
+          Edit profile
+        </Link>
+      }
+    />
   );
 }
 
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
   return (
-    <section className="rounded-sm border border-zinc-200 bg-white p-6">
+    <Card className="p-6">
       <h2 className="text-base font-semibold text-zinc-900">{title}</h2>
-      <dl className="mt-4 divide-y divide-zinc-100">{children}</dl>
-    </section>
+      <dl className="mt-4 divide-y divide-zinc-200/60">{children}</dl>
+    </Card>
   );
 }
 
@@ -201,12 +197,7 @@ function Chips({ items }: { items: string[] }) {
   return (
     <div className="flex flex-wrap gap-1.5">
       {items.map((item) => (
-        <span
-          key={item}
-          className="rounded-full bg-zinc-100 px-3 py-0.5 text-xs font-medium text-zinc-700"
-        >
-          {item}
-        </span>
+        <Pill key={item}>{item}</Pill>
       ))}
     </div>
   );

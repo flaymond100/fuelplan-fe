@@ -3,6 +3,15 @@ import { Link, useNavigate } from 'react-router-dom';
 import { useQueryClient } from '@tanstack/react-query';
 import toast from 'react-hot-toast';
 import PageHeader from '../components/PageHeader';
+import {
+  Card,
+  SectionCard,
+  Field,
+  ChipButton,
+  StatusPill,
+  buttonClass,
+  inputClass,
+} from '../components/ui';
 import { api, errorStatus } from '../lib/api';
 import { useStravaStatus, useInvalidateStravaStatus } from '../hooks/useStravaStatus';
 import { supabase } from '../lib/supabase';
@@ -69,9 +78,6 @@ const EMPTY_FORM: FormState = {
   supplements: '',
 };
 
-const inputClass =
-  'block w-full rounded-lg border border-zinc-300 bg-white px-3 py-2 text-sm text-zinc-900 transition focus:border-amber-500 focus:outline-none focus:ring-2 focus:ring-amber-500/30';
-
 function rowToForm(row: ProfileRow): FormState {
   return {
     fullName: row.full_name ?? '',
@@ -108,22 +114,20 @@ export default function ProfileEdit() {
 
   if (isLoading) {
     return (
-      <div>
+      <div className="space-y-8">
         <PageHeader title="Edit profile" />
-        <div className="mt-8 rounded-sm border border-zinc-200 bg-white p-12 text-center text-sm text-zinc-500">
-          Loading…
-        </div>
+        <Card className="p-12 text-center text-sm text-zinc-500">Loading…</Card>
       </div>
     );
   }
 
   if (isError) {
     return (
-      <div>
+      <div className="space-y-8">
         <PageHeader title="Edit profile" />
-        <div className="mt-8 rounded-sm border border-rose-200 bg-rose-50 p-6 text-sm text-rose-700">
+        <Card className="p-6 text-sm text-rose-700">
           Could not load your profile. Refresh to try again.
-        </div>
+        </Card>
       </div>
     );
   }
@@ -219,7 +223,7 @@ function ProfileEditForm({ initial }: { initial: ProfileRow | null }) {
       </div>
 
       <form onSubmit={handleSubmit} className="mt-8 space-y-6">
-        <Section title="About you" subtitle="Identity and body.">
+        <SectionCard title="About you" subtitle="Identity and body.">
           <div className="grid gap-5 lg:grid-cols-2">
             <Field label="Full name" htmlFor="fullName">
               <input
@@ -280,9 +284,9 @@ function ProfileEditForm({ initial }: { initial: ProfileRow | null }) {
               />
             </Field>
           </div>
-        </Section>
+        </SectionCard>
 
-        <Section
+        <SectionCard
           title="Sport & performance"
           subtitle="Used to estimate effort and energy expenditure on your routes."
         >
@@ -363,9 +367,9 @@ function ProfileEditForm({ initial }: { initial: ProfileRow | null }) {
               />
             </Field>
           </div>
-        </Section>
+        </SectionCard>
 
-        <Section
+        <SectionCard
           title="Fuelling & gut tolerance"
           subtitle="How much you can absorb, and what works for your stomach."
         >
@@ -429,9 +433,9 @@ function ProfileEditForm({ initial }: { initial: ProfileRow | null }) {
               ))}
             </div>
           </Field>
-        </Section>
+        </SectionCard>
 
-        <Section
+        <SectionCard
           title="Diet & restrictions"
           subtitle="So Claude never suggests something you can't or won't eat."
         >
@@ -492,9 +496,9 @@ function ProfileEditForm({ initial }: { initial: ProfileRow | null }) {
               placeholder="e.g. no gels, hate bananas, gummies upset my stomach"
             />
           </Field>
-        </Section>
+        </SectionCard>
 
-        <Section title="Supplements" subtitle="What you typically take. Comma-separated.">
+        <SectionCard title="Supplements" subtitle="What you typically take. Comma-separated.">
           <Field label="Supplements" htmlFor="supplements">
             <input
               id="supplements"
@@ -505,22 +509,15 @@ function ProfileEditForm({ initial }: { initial: ProfileRow | null }) {
               placeholder="e.g. electrolytes, sodium tabs, magnesium"
             />
           </Field>
-        </Section>
+        </SectionCard>
 
         <StravaSection />
 
         <div className="flex items-center justify-end gap-3 pt-2">
-          <Link
-            to="/app/profile"
-            className="rounded-full border border-zinc-300 bg-white px-5 py-2.5 text-sm font-semibold text-zinc-700 transition hover:border-zinc-400 hover:bg-zinc-50"
-          >
+          <Link to="/app/profile" className={buttonClass('secondary')}>
             Cancel
           </Link>
-          <button
-            type="submit"
-            disabled={saving}
-            className="inline-flex items-center gap-2 rounded-full bg-gradient-to-br from-amber-400 to-orange-600 px-6 py-2.5 text-sm font-semibold text-zinc-950 shadow-lg shadow-orange-600/20 transition hover:shadow-orange-500/40 hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-70"
-          >
+          <button type="submit" disabled={saving} className={buttonClass('primary')}>
             {saving ? 'Saving…' : 'Save changes'}
           </button>
         </div>
@@ -562,15 +559,11 @@ function StravaSection() {
   const connected = status?.connected === true;
 
   return (
-    <section className="rounded-sm border border-zinc-200 bg-white p-6">
-      <header className="mb-5">
-        <h2 className="text-base font-semibold text-zinc-900">Connected apps</h2>
-        <p className="mt-1 text-sm text-zinc-500">
-          Connect Strava to pull your last 3 days of activities into every plan you generate.
-        </p>
-      </header>
-
-      <div className="flex items-center justify-between gap-4 rounded-lg border border-zinc-200 bg-zinc-50 px-4 py-3">
+    <SectionCard
+      title="Connected apps"
+      subtitle="Connect Strava to pull your last 3 days of activities into every plan you generate."
+    >
+      <div className="flex items-center justify-between gap-4 rounded-2xl bg-white/40 px-4 py-3 ring-1 ring-white/70">
         <div className="flex items-center gap-3">
           {/* Strava wordmark colour */}
           <svg viewBox="0 0 24 24" className="h-7 w-7 shrink-0" fill="none">
@@ -582,11 +575,13 @@ function StravaSection() {
             {isLoading ? (
               <p className="text-xs text-zinc-400">Checking…</p>
             ) : connected ? (
-              <p className="text-xs text-emerald-600">
+              <StatusPill tone="emerald" className="mt-1">
                 Connected{status.athleteName ? ` as ${status.athleteName}` : ''}
-              </p>
+              </StatusPill>
             ) : (
-              <p className="text-xs text-zinc-400">Not connected</p>
+              <StatusPill tone="zinc" className="mt-1">
+                Not connected
+              </StatusPill>
             )}
           </div>
         </div>
@@ -597,7 +592,7 @@ function StravaSection() {
               type="button"
               onClick={handleDisconnect}
               disabled={disconnecting}
-              className="rounded-full border border-zinc-300 bg-white px-4 py-1.5 text-xs font-semibold text-zinc-600 transition hover:border-rose-300 hover:text-rose-600 disabled:opacity-50"
+              className="rounded-full bg-white/70 px-4 py-1.5 text-xs font-semibold text-zinc-600 ring-1 ring-white/80 backdrop-blur transition hover:bg-white hover:text-rose-600 disabled:opacity-50"
             >
               {disconnecting ? 'Disconnecting…' : 'Disconnect'}
             </button>
@@ -613,74 +608,6 @@ function StravaSection() {
           )
         )}
       </div>
-    </section>
-  );
-}
-
-function Section({
-  title,
-  subtitle,
-  children,
-}: {
-  title: string;
-  subtitle?: string;
-  children: React.ReactNode;
-}) {
-  return (
-    <section className="rounded-sm border border-zinc-200 bg-white p-6">
-      <header className="mb-5">
-        <h2 className="text-base font-semibold text-zinc-900">{title}</h2>
-        {subtitle && <p className="mt-1 text-sm text-zinc-500">{subtitle}</p>}
-      </header>
-      {children}
-    </section>
-  );
-}
-
-function Field({
-  label,
-  hint,
-  htmlFor,
-  className,
-  children,
-}: {
-  label: string;
-  hint?: string;
-  htmlFor?: string;
-  className?: string;
-  children: React.ReactNode;
-}) {
-  return (
-    <div className={className}>
-      <label htmlFor={htmlFor} className="block text-sm font-medium text-zinc-700">
-        {label}
-      </label>
-      <div className="mt-1.5">{children}</div>
-      {hint && <p className="mt-1.5 text-xs text-zinc-500">{hint}</p>}
-    </div>
-  );
-}
-
-function ChipButton({
-  active,
-  onClick,
-  children,
-}: {
-  active: boolean;
-  onClick: () => void;
-  children: React.ReactNode;
-}) {
-  return (
-    <button
-      type="button"
-      onClick={onClick}
-      className={`rounded-full px-4 py-1.5 text-sm font-medium transition ${
-        active
-          ? 'bg-amber-500 text-zinc-950 shadow-sm'
-          : 'border border-zinc-300 bg-white text-zinc-700 hover:border-zinc-400 hover:bg-zinc-50'
-      }`}
-    >
-      {children}
-    </button>
+    </SectionCard>
   );
 }

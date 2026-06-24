@@ -24,17 +24,17 @@ export default function GeneratingOverlay() {
   }, []);
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-zinc-950/60 p-6 backdrop-blur-sm">
-      <div className="flex w-full max-w-sm flex-col items-center rounded-2xl border border-zinc-200 bg-white px-8 py-10 text-center shadow-2xl">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-zinc-950/40 p-6 backdrop-blur-md">
+      <div className="flex w-full max-w-sm flex-col items-center rounded-3xl bg-white/80 px-8 py-10 text-center shadow-2xl ring-1 ring-white/70 backdrop-blur-xl">
         {/* Spinner: dual orbiting rings with a pulsing core */}
         <div className="relative h-20 w-20">
-          <div className="absolute inset-0 animate-spin rounded-full border-4 border-amber-200 border-t-amber-500" />
+          <div className="absolute inset-0 animate-spin rounded-full border-4 border-brand-200 border-t-brand-500" />
           <div
-            className="absolute inset-2 animate-spin rounded-full border-4 border-orange-100 border-b-orange-500"
+            className="absolute inset-2 animate-spin rounded-full border-4 border-fuel-300/60 border-b-fuel-500"
             style={{ animationDirection: 'reverse', animationDuration: '1.4s' }}
           />
           <div className="absolute inset-0 flex items-center justify-center">
-            <span className="h-3 w-3 animate-pulse rounded-full bg-linear-to-br from-amber-400 to-orange-600" />
+            <span className="h-3 w-3 animate-pulse rounded-full bg-linear-to-br from-brand-400 to-brand-600" />
           </div>
         </div>
 
@@ -50,7 +50,7 @@ export default function GeneratingOverlay() {
             <span
               key={i}
               className={`h-1.5 rounded-full transition-all duration-500 ${
-                i <= step ? 'w-5 bg-amber-500' : 'w-1.5 bg-zinc-200'
+                i <= step ? 'w-5 bg-brand-500' : 'w-1.5 bg-zinc-200'
               }`}
             />
           ))}

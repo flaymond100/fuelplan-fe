@@ -1,149 +1,293 @@
 import { Link } from 'react-router-dom';
 import PageHeader from '../components/PageHeader';
+import { SectionCard, StatCard, Ring, StatusPill, buttonClass } from '../components/ui';
 import { useSession } from '../hooks/useSession';
 import { useProfile } from '../hooks/useProfile';
-import { useLatestPlan } from '../hooks/usePlans';
+import { usePlans } from '../hooks/usePlans';
+import { useStravaStatus } from '../hooks/useStravaStatus';
 import { formatDate } from '../lib/profileFormat';
-import type { PlanRow } from '../types';
+import type { PlanRow, ProfileRow } from '../types';
 
 export default function Dashboard() {
   const { session } = useSession();
   const { data: profile } = useProfile();
-  const { data: latestPlan, isLoading: planLoading } = useLatestPlan();
+  const { data: plans = [] } = usePlans();
+  const { data: strava } = useStravaStatus();
+
   const email = session?.user.email ?? '';
   const firstName = profile?.full_name?.split(' ')[0] || email.split('@')[0];
+  const connected = strava?.connected ?? false;
+
+  const pct = profilePct(profile);
+  const { next, days } = nextRace(plans);
+
+  const steps = [
+    { label: 'Complete your profile', done: pct >= 75, to: '/app/profile/edit' },
+    { label: 'Connect Strava', done: connected, to: '/app/profile/edit' },
+    { label: 'Create your first plan', done: plans.length > 0, to: '/app/plans/new' },
+  ];
+  const stepsDone = steps.filter((s) => s.done).length;
+  const checklistPct = Math.round((stepsDone / steps.length) * 100);
 
   return (
-    <div>
+    <div className="space-y-6">
       <PageHeader
-        title={`Welcome back${firstName ? `, ${firstName}` : ''}`}
-        subtitle="Your plans, profile, and subscription — one click away."
+        title={
+          <>
+            Welcome back{firstName ? `, ${firstName}` : ''} <span className="align-middle">👋</span>
+          </>
+        }
+        subtitle="Your race nutrition, training load and profile — at a glance."
+        action={
+          <Link to="/app/plans/new" className={buttonClass('primary')}>
+            <PlusIcon /> New plan
+          </Link>
+        }
       />
 
-      <div className="mt-10 grid gap-5 md:grid-cols-3">
-        <PrimaryCard
-          to="/app/plans/new"
-          title="Create a plan"
-          body="Upload a GPX, answer a few questions, get a personalised race-day plan."
+      {/* Stat cards */}
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        <StatCard
+          label="Plans created"
+          value={plans.length}
+          icon={<ListIcon />}
+          footer={
+            plans.length > 0 && (
+              <Link to="/app/plans" className="text-sm font-medium text-brand-700 hover:text-brand-600">
+                View all →
+              </Link>
+            )
+          }
         />
-        <SecondaryCard
-          to="/app/plans"
-          title="My plans"
-          body="Plans you've generated. Nothing yet — your first plan is on us."
+        <StatCard
+          label="Next race"
+          value={days != null ? days : '—'}
+          unit={days != null ? (days === 1 ? 'day' : 'days') : undefined}
+          icon={<FlagIcon />}
+          footer={
+            next?.race_name && (
+              <span className="truncate text-sm text-zinc-500" title={next.race_name}>
+                {next.race_name}
+              </span>
+            )
+          }
         />
-        <SecondaryCard
-          to="/app/profile"
-          title="Profile"
-          body="Weight, sweat rate, gut tolerance. Save once, reuse on every plan."
+        <StatCard
+          label="Profile complete"
+          value={`${pct}%`}
+          icon={<UserIcon />}
+          footer={
+            <Link to="/app/profile/edit" className="text-sm font-medium text-brand-700 hover:text-brand-600">
+              {pct < 100 ? 'Finish →' : 'Edit →'}
+            </Link>
+          }
+        />
+        <StatCard
+          label="Strava"
+          value={connected ? 'Linked' : 'Off'}
+          icon={<StravaIcon />}
+          delta={
+            connected ? (
+              <StatusPill tone="brand">Connected</StatusPill>
+            ) : (
+              <StatusPill tone="zinc">Not linked</StatusPill>
+            )
+          }
+          footer={
+            !connected && (
+              <Link to="/app/profile/edit" className="text-sm font-medium text-brand-700 hover:text-brand-600">
+                Connect →
+              </Link>
+            )
+          }
         />
       </div>
 
-      <section className="mt-12">
-        <div className="flex items-center justify-between">
-          <h2 className="text-sm font-semibold uppercase tracking-wider text-zinc-500">Latest plan</h2>
-          {latestPlan && (
-            <Link to="/app/plans" className="text-sm font-medium text-amber-600 hover:text-amber-700">
-              All plans →
-            </Link>
-          )}
-        </div>
-
-        {planLoading ? (
-          <div className="mt-4 rounded-sm border border-zinc-200 bg-white p-10 text-center text-sm text-zinc-500">
-            Loading…
-          </div>
-        ) : latestPlan ? (
-          <LatestPlanCard plan={latestPlan} />
-        ) : (
-          <div className="mt-4 rounded-sm border border-dashed border-zinc-200 bg-white p-10 text-center">
-            <p className="text-sm text-zinc-500">
-              No plans yet.{' '}
-              <Link to="/app/plans/new" className="font-medium text-amber-600 hover:text-amber-700">
-                Create your first one →
+      {/* Recent plans + getting started */}
+      <div className="grid gap-4 lg:grid-cols-3">
+        <SectionCard
+          className="lg:col-span-2"
+          title="Recent plans"
+          subtitle="Your latest race-day nutrition plans."
+          right={
+            plans.length > 0 ? (
+              <Link to="/app/plans" className="text-sm font-medium text-brand-700 hover:text-brand-600">
+                All plans →
               </Link>
-            </p>
+            ) : undefined
+          }
+        >
+          {plans.length === 0 ? (
+            <div className="rounded-2xl border border-dashed border-zinc-300/70 bg-white/40 p-10 text-center">
+              <p className="text-sm text-zinc-500">
+                No plans yet.{' '}
+                <Link to="/app/plans/new" className="font-medium text-brand-700 hover:text-brand-600">
+                  Create your first one →
+                </Link>
+              </p>
+            </div>
+          ) : (
+            <div className="space-y-2">
+              {plans.slice(0, 5).map((p) => (
+                <RecentPlanRow key={p.id} plan={p} />
+              ))}
+            </div>
+          )}
+        </SectionCard>
+
+        <SectionCard title="Getting started" subtitle="A few steps to your best plan.">
+          <div className="flex items-center gap-5">
+            <Ring pct={checklistPct / 100} size={104} thickness={10} glow="rgba(132,204,22,0.35)">
+              <span className="text-2xl font-bold tabular-nums text-zinc-900">{checklistPct}%</span>
+            </Ring>
+            <div className="flex-1 space-y-2.5">
+              {steps.map((s) => (
+                <Link key={s.label} to={s.to} className="group flex items-center gap-2.5">
+                  <Check done={s.done} />
+                  <span className={`text-sm ${s.done ? 'text-zinc-400 line-through' : 'text-zinc-700 group-hover:text-zinc-900'}`}>
+                    {s.label}
+                  </span>
+                </Link>
+              ))}
+            </div>
           </div>
-        )}
-      </section>
+        </SectionCard>
+      </div>
     </div>
   );
 }
 
-function LatestPlanCard({ plan }: { plan: PlanRow }) {
+function RecentPlanRow({ plan }: { plan: PlanRow }) {
   const totals = plan.plan_json?.totals;
+  const discipline = plan.request_params?.discipline;
   return (
     <Link
       to={`/app/plans/${plan.id}`}
-      className="group mt-4 block rounded-sm border border-zinc-200 bg-white p-6 transition hover:border-zinc-300 hover:shadow-sm"
+      className="group flex items-center gap-3 rounded-2xl bg-white/40 p-3 ring-1 ring-transparent transition hover:bg-white/70 hover:ring-white/70"
     >
-      <div className="flex items-start justify-between gap-4">
-        <div className="min-w-0">
-          <h3 className="truncate text-lg font-semibold text-zinc-900">
-            {plan.race_name ?? 'Untitled plan'}
-          </h3>
-          <p className="mt-1 flex flex-wrap gap-x-3 text-sm text-zinc-500">
-            {plan.race_date && <span>{formatDate(plan.race_date)}</span>}
-            {plan.distance_km != null && <span>{plan.distance_km} km</span>}
-            {plan.elevation_m != null && <span>{plan.elevation_m} m climb</span>}
-          </p>
-        </div>
-        <svg
-          viewBox="0 0 20 20"
-          fill="currentColor"
-          className="h-5 w-5 flex-shrink-0 text-zinc-300 transition group-hover:translate-x-0.5 group-hover:text-amber-500"
-        >
-          <path fillRule="evenodd" d="M3 10a.75.75 0 0 1 .75-.75h10.638L10.23 5.29a.75.75 0 1 1 1.04-1.08l5.5 5.25a.75.75 0 0 1 0 1.08l-5.5 5.25a.75.75 0 1 1-1.04-1.08l4.158-3.96H3.75A.75.75 0 0 1 3 10Z" clipRule="evenodd" />
-        </svg>
+      <span className="grid h-11 w-11 shrink-0 place-items-center rounded-xl bg-brand-400/15 text-brand-700">
+        <DisciplineIcon discipline={discipline} />
+      </span>
+      <div className="min-w-0 flex-1">
+        <p className="truncate text-sm font-semibold text-zinc-900">{plan.race_name ?? 'Untitled plan'}</p>
+        <p className="truncate text-xs text-zinc-500">
+          {[plan.race_date && formatDate(plan.race_date), plan.distance_km != null && `${plan.distance_km} km`, plan.elevation_m != null && `${plan.elevation_m} m`]
+            .filter(Boolean)
+            .join(' · ')}
+        </p>
       </div>
-
-      {plan.plan_json?.summary && (
-        <p className="mt-3 line-clamp-2 text-sm text-zinc-600">{plan.plan_json.summary}</p>
-      )}
-
       {totals && (
-        <div className="mt-4 flex flex-wrap gap-x-5 gap-y-1 text-xs text-zinc-500">
-          <span><span className="font-semibold text-zinc-900">{totals.carbsG}</span> g carbs</span>
-          <span><span className="font-semibold text-zinc-900">{totals.fluidsMl}</span> ml fluid</span>
-          <span><span className="font-semibold text-zinc-900">{totals.sodiumMg}</span> mg Na</span>
-          <span><span className="font-semibold text-zinc-900">{totals.kcal}</span> kcal</span>
-        </div>
+        <span className="shrink-0 text-right text-sm font-semibold tabular-nums text-zinc-900">
+          {totals.kcal.toLocaleString()}
+          <span className="ml-0.5 text-xs font-medium text-zinc-400">kcal</span>
+        </span>
       )}
+      <svg viewBox="0 0 20 20" fill="currentColor" className="h-4 w-4 shrink-0 text-zinc-300 transition group-hover:translate-x-0.5 group-hover:text-brand-600">
+        <path fillRule="evenodd" d="M3 10a.75.75 0 0 1 .75-.75h10.638L10.23 5.29a.75.75 0 1 1 1.04-1.08l5.5 5.25a.75.75 0 0 1 0 1.08l-5.5 5.25a.75.75 0 1 1-1.04-1.08l4.158-3.96H3.75A.75.75 0 0 1 3 10Z" clipRule="evenodd" />
+      </svg>
     </Link>
   );
 }
 
-function PrimaryCard({ to, title, body }: { to: string; title: string; body: string }) {
-  return (
-    <Link
-      to={to}
-      className="group relative overflow-hidden rounded-sm bg-gradient-to-br from-amber-400 to-orange-600 p-6 text-zinc-950 shadow-lg shadow-orange-600/20 transition hover:shadow-orange-500/40 hover:brightness-105"
-    >
-      <h3 className="text-lg font-semibold">{title}</h3>
-      <p className="mt-2 text-sm leading-relaxed text-zinc-900/80">{body}</p>
-      <span className="mt-5 inline-flex items-center gap-1 text-sm font-semibold">
-        Start
-        <svg viewBox="0 0 20 20" fill="currentColor" className="h-4 w-4 transition group-hover:translate-x-0.5">
-          <path fillRule="evenodd" d="M3 10a.75.75 0 0 1 .75-.75h10.638L10.23 5.29a.75.75 0 1 1 1.04-1.08l5.5 5.25a.75.75 0 0 1 0 1.08l-5.5 5.25a.75.75 0 1 1-1.04-1.08l4.158-3.96H3.75A.75.75 0 0 1 3 10Z" clipRule="evenodd" />
-        </svg>
-      </span>
-    </Link>
+function Check({ done }: { done: boolean }) {
+  return done ? (
+    <span className="grid h-5 w-5 shrink-0 place-items-center rounded-full bg-brand-400 text-zinc-950">
+      <svg viewBox="0 0 20 20" fill="currentColor" className="h-3.5 w-3.5">
+        <path fillRule="evenodd" d="M16.7 5.3a1 1 0 0 1 0 1.4l-7.5 7.5a1 1 0 0 1-1.4 0l-3.5-3.5a1 1 0 1 1 1.4-1.4l2.8 2.79 6.8-6.79a1 1 0 0 1 1.4 0Z" clipRule="evenodd" />
+      </svg>
+    </span>
+  ) : (
+    <span className="h-5 w-5 shrink-0 rounded-full border-2 border-zinc-300" />
   );
 }
 
-function SecondaryCard({ to, title, body }: { to: string; title: string; body: string }) {
+// ── helpers ──────────────────────────────────────────────────────────────────
+
+function profilePct(p?: ProfileRow | null): number {
+  if (!p) return 0;
+  const checks = [
+    p.full_name,
+    p.weight_kg,
+    p.sex,
+    p.disciplines?.length,
+    p.sweat_rate,
+    p.max_carbs_g_hr,
+    p.caffeine_tolerance,
+    p.fuel_forms?.length,
+  ];
+  const done = checks.filter(Boolean).length;
+  return Math.round((done / checks.length) * 100);
+}
+
+function nextRace(plans: PlanRow[]): { next: PlanRow | null; days: number | null } {
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  const upcoming = plans
+    .filter((p) => p.race_date && new Date(p.race_date).getTime() >= today.getTime())
+    .sort((a, b) => (a.race_date! < b.race_date! ? -1 : 1));
+  const next = upcoming[0] ?? null;
+  const days = next?.race_date
+    ? Math.ceil((new Date(next.race_date).getTime() - today.getTime()) / 86400000)
+    : null;
+  return { next, days };
+}
+
+function DisciplineIcon({ discipline }: { discipline?: string }) {
+  if (discipline === 'running') {
+    return (
+      <svg viewBox="0 0 24 24" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <circle cx="13" cy="5" r="1.6" />
+        <path d="m6 20 2.5-4.5L8 13l1-5 4 1.5 1.5 2.5L17 14M11 9l-3 1" />
+      </svg>
+    );
+  }
   return (
-    <Link
-      to={to}
-      className="group rounded-sm border border-zinc-200 bg-white p-6 transition hover:border-zinc-300 hover:shadow-sm"
-    >
-      <h3 className="text-lg font-semibold text-zinc-900">{title}</h3>
-      <p className="mt-2 text-sm leading-relaxed text-zinc-500">{body}</p>
-      <span className="mt-5 inline-flex items-center gap-1 text-sm font-medium text-amber-600 group-hover:text-amber-700">
-        Open
-        <svg viewBox="0 0 20 20" fill="currentColor" className="h-4 w-4 transition group-hover:translate-x-0.5">
-          <path fillRule="evenodd" d="M3 10a.75.75 0 0 1 .75-.75h10.638L10.23 5.29a.75.75 0 1 1 1.04-1.08l5.5 5.25a.75.75 0 0 1 0 1.08l-5.5 5.25a.75.75 0 1 1-1.04-1.08l4.158-3.96H3.75A.75.75 0 0 1 3 10Z" clipRule="evenodd" />
-        </svg>
-      </span>
-    </Link>
+    <svg viewBox="0 0 24 24" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <circle cx="18.5" cy="17.5" r="3.5" />
+      <circle cx="5.5" cy="17.5" r="3.5" />
+      <circle cx="15" cy="5" r="1" />
+      <path d="M12 17.5V14l-3-3 4-3 2 3h2" />
+    </svg>
+  );
+}
+
+function PlusIcon() {
+  return (
+    <svg viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M12 5v14 M5 12h14" />
+    </svg>
+  );
+}
+
+function ListIcon() {
+  return (
+    <svg viewBox="0 0 24 24" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M8 6h13 M8 12h13 M8 18h13 M3 6h.01 M3 12h.01 M3 18h.01" />
+    </svg>
+  );
+}
+
+function FlagIcon() {
+  return (
+    <svg viewBox="0 0 24 24" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M4 21V4 M4 4h11l-1.5 3.5L15 11H4" />
+    </svg>
+  );
+}
+
+function UserIcon() {
+  return (
+    <svg viewBox="0 0 24 24" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
+      <circle cx="12" cy="8" r="4" />
+      <path d="M4 21a8 8 0 0 1 16 0" />
+    </svg>
+  );
+}
+
+function StravaIcon() {
+  return (
+    <svg viewBox="0 0 24 24" className="h-5 w-5" fill="currentColor" aria-hidden>
+      <path d="M13.02 2 7.2 13.3h3.5L13.02 8.6l2.32 4.7h3.46L13.02 2Zm2.32 11.3-1.74 3.4-1.74-3.4H9.36L13.6 22l4.24-8.7h-2.5Z" />
+    </svg>
   );
 }

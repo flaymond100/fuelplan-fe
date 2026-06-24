@@ -44,7 +44,7 @@ export default function StravaCallback() {
   return (
     <div className="flex min-h-64 items-center justify-center">
       <div className="text-center">
-        <div className="mx-auto h-10 w-10 animate-spin rounded-full border-4 border-zinc-200 border-t-orange-500" />
+        <div className="mx-auto h-10 w-10 animate-spin rounded-full border-4 border-zinc-200 border-t-brand-500" />
         <p className="mt-4 text-sm text-zinc-500">Connecting to Strava…</p>
       </div>
     </div>

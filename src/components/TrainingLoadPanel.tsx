@@ -7,18 +7,17 @@ import {
 } from '../hooks/useStravaRecentLoad';
 
 /**
- * WHOOP-style training dashboard for the plan page.
+ * Training dashboard for the plan page — WHOOP-style widgets (rings, a ramp
+ * gauge, daily bars) in the app's light frosted-glass theme.
  *
- * Dark, self-contained island on the otherwise-light page (a full-page dark
- * theme was tried and reverted earlier — this keeps the dark scoped here).
- * Fetched live on open relative to *today* via our authenticated backend; the
- * Strava OAuth token never reaches the browser. Metrics are mapped honestly to
- * the WHOOP visual vocabulary — no invented recovery/HRV scores we don't have.
+ * Collapsed by default; the (heavy) Strava fetch is gated on expansion. Keyed
+ * to *today* via our authenticated backend — the Strava token never reaches the
+ * browser. Metrics map honestly to the widgets (no invented recovery/HRV).
  */
 
-// Accent palette (WHOOP-ish)
-const BLUE = { from: '#1d6ff2', to: '#7cc6ff', glow: 'rgba(75,170,255,0.40)' };
-const GREEN = { from: '#0bbf6a', to: '#16ec5e', glow: 'rgba(22,236,94,0.40)' };
+// Ring accents (light theme): lime for load, emerald for consistency.
+const LIME = { from: '#a3e635', to: '#4d7c0f', glow: 'rgba(132,204,22,0.35)' };
+const EMERALD = { from: '#34d399', to: '#047857', glow: 'rgba(16,185,129,0.30)' };
 
 const LOAD_FULL_TSS = 1000; // 14-day TSS that visually fills the ring
 const LOAD_FULL_HOURS = 20; // …or hours, when there's no power data
@@ -65,7 +64,7 @@ export default function TrainingLoadPanel() {
 
 function Shell({ children }: { children: React.ReactNode }) {
   return (
-    <section className="overflow-hidden rounded-3xl bg-[#09090b] p-4 ring-1 ring-white/10 sm:p-5">
+    <section className="overflow-hidden rounded-3xl bg-white/60 p-4 ring-1 ring-white/70 shadow-[0_18px_50px_-22px_rgba(15,23,42,0.35)] backdrop-blur-xl sm:p-5">
       {children}
     </section>
   );
@@ -95,7 +94,7 @@ function Header({
         <svg
           viewBox="0 0 20 20"
           fill="currentColor"
-          className={`h-4 w-4 text-zinc-500 transition-transform group-hover:text-zinc-300 ${open ? 'rotate-90' : ''}`}
+          className={`h-4 w-4 text-zinc-400 transition-transform group-hover:text-zinc-700 ${open ? 'rotate-90' : ''}`}
         >
           <path
             fillRule="evenodd"
@@ -104,7 +103,7 @@ function Header({
           />
         </svg>
         <span className="block">
-          <span className="block text-sm font-bold uppercase tracking-[0.18em] text-white">Training</span>
+          <span className="block text-sm font-bold uppercase tracking-[0.18em] text-zinc-900">Training</span>
           <span className="mt-0.5 block text-[11px] uppercase tracking-[0.16em] text-zinc-500">
             Last 14 days{range ? ` · ${range}` : ''}
           </span>
@@ -117,7 +116,7 @@ function Header({
             type="button"
             onClick={onRefresh}
             aria-label="Refresh training data"
-            className="text-zinc-500 transition hover:text-white"
+            className="text-zinc-400 transition hover:text-zinc-800"
           >
             <svg
               viewBox="0 0 24 24"
@@ -150,58 +149,58 @@ function Body({ s }: { s: StravaTrainingSnapshot }) {
     <div className="space-y-3">
       {/* Hero: two rings + a gauge */}
       <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
-        <Card caption="Training load">
-          <Ring pct={loadPct} {...BLUE}>
-            <span className="text-3xl font-bold tabular-nums text-white">
+        <Panel caption="Training load">
+          <Ring pct={loadPct} {...LIME}>
+            <span className="text-3xl font-bold tabular-nums text-zinc-900">
               {Math.round(loadVal).toLocaleString()}
             </span>
             <span className="mt-0.5 text-[10px] font-semibold uppercase tracking-[0.18em] text-zinc-500">
               {useTss ? '14-day TSS' : '14-day hrs'}
             </span>
           </Ring>
-        </Card>
+        </Panel>
 
-        <Card caption="Consistency">
-          <Ring pct={consPct} {...GREEN}>
-            <span className="text-3xl font-bold tabular-nums text-white">
+        <Panel caption="Consistency">
+          <Ring pct={consPct} {...EMERALD}>
+            <span className="text-3xl font-bold tabular-nums text-zinc-900">
               {s.totals.activeDays}
-              <span className="text-lg text-zinc-500">/14</span>
+              <span className="text-lg text-zinc-400">/14</span>
             </span>
             <span className="mt-0.5 text-[10px] font-semibold uppercase tracking-[0.18em] text-zinc-500">
               active days
             </span>
           </Ring>
-        </Card>
+        </Panel>
 
-        <Card caption="Build rate">
+        <Panel caption="Build rate">
           <BuildGauge rampPct={s.rampPct} />
-        </Card>
+        </Panel>
       </div>
 
       {/* Daily load bars */}
-      <Card>
+      <Panel>
         <div className="mb-3 flex items-center justify-between">
-          <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-zinc-400">
+          <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-zinc-500">
             {useTss ? 'Daily load' : 'Daily hours'}
           </p>
           <div className="flex items-center gap-3 text-[10px] uppercase tracking-wider text-zinc-500">
-            <Legend dot="bg-sky-400" label="this week" />
-            <Legend dot="bg-zinc-600" label="last week" />
+            <Legend dot="bg-brand-400" label="this week" />
+            <Legend dot="bg-zinc-300" label="last week" />
           </div>
         </div>
         <DayBars s={s} useTss={useTss} />
-      </Card>
+      </Panel>
 
       {/* Sport split + recent activities */}
       <div className="grid grid-cols-1 gap-3 lg:grid-cols-2">
-        <Card>
-          <p className="mb-3 text-[11px] font-semibold uppercase tracking-[0.18em] text-zinc-400">
+        <Panel>
+          <p className="mb-3 text-[11px] font-semibold uppercase tracking-[0.18em] text-zinc-500">
             By sport
           </p>
           <SportBars s={s} />
-        </Card>
-        <Card>
-          <p className="mb-3 text-[11px] font-semibold uppercase tracking-[0.18em] text-zinc-400">
+        </Panel>
+        <Panel>
+          <p className="mb-3 text-[11px] font-semibold uppercase tracking-[0.18em] text-zinc-500">
             Recent activities
           </p>
           <div className="space-y-1.5">
@@ -209,7 +208,7 @@ function Body({ s }: { s: StravaTrainingSnapshot }) {
               <ActivityRow key={i} a={a} />
             ))}
           </div>
-        </Card>
+        </Panel>
       </div>
 
       {/* Stat strip */}
@@ -240,11 +239,11 @@ function Body({ s }: { s: StravaTrainingSnapshot }) {
   );
 }
 
-// ── WHOOP-style primitives ─────────────────────────────────────────────────
+// ── Widgets ──────────────────────────────────────────────────────────────────
 
-function Card({ caption, children }: { caption?: string; children: React.ReactNode }) {
+function Panel({ caption, children }: { caption?: string; children: React.ReactNode }) {
   return (
-    <div className="relative rounded-2xl bg-[#161618] p-4 ring-1 ring-white/5">
+    <div className="relative rounded-2xl bg-white/55 p-4 ring-1 ring-white/60">
       {caption && (
         <p className="mb-2 text-[10px] font-semibold uppercase tracking-[0.2em] text-zinc-500">{caption}</p>
       )}
@@ -287,7 +286,7 @@ function Ring({
             <stop offset="100%" stopColor={to} />
           </linearGradient>
         </defs>
-        <circle cx={cx} cy={cx} r={r} fill="none" stroke="#ffffff14" strokeWidth={thickness} />
+        <circle cx={cx} cy={cx} r={r} fill="none" stroke="rgba(15,23,42,0.08)" strokeWidth={thickness} />
         <circle
           cx={cx}
           cy={cx}
@@ -345,11 +344,11 @@ function BuildGauge({ rampPct }: { rampPct: number | null }) {
       <svg width={size} height={h} viewBox={`0 0 ${size} ${h}`}>
         <defs>
           <linearGradient id={id} x1="0%" y1="0%" x2="100%" y2="0%">
-            <stop offset="0%" stopColor="#1d6ff2" />
-            <stop offset="42%" stopColor="#16ec5e" />
-            <stop offset="68%" stopColor="#ffd400" />
-            <stop offset="86%" stopColor="#ff8a00" />
-            <stop offset="100%" stopColor="#ff4d4f" />
+            <stop offset="0%" stopColor="#38bdf8" />
+            <stop offset="42%" stopColor="#84cc16" />
+            <stop offset="68%" stopColor="#facc15" />
+            <stop offset="86%" stopColor="#fb923c" />
+            <stop offset="100%" stopColor="#ef4444" />
           </linearGradient>
         </defs>
         <path
@@ -365,7 +364,7 @@ function BuildGauge({ rampPct }: { rampPct: number | null }) {
             y1={needle.y1}
             x2={needle.x2}
             y2={needle.y2}
-            stroke="#fff"
+            stroke="#27272a"
             strokeWidth={3.5}
             strokeLinecap="round"
           />
@@ -381,10 +380,10 @@ function BuildGauge({ rampPct }: { rampPct: number | null }) {
         </span>
       </div>
       {/* End labels */}
-      <div className="absolute left-1 text-[9px] font-medium uppercase tracking-wider text-zinc-600" style={{ top: cy - 4 }}>
+      <div className="absolute left-1 text-[9px] font-medium uppercase tracking-wider text-zinc-400" style={{ top: cy - 4 }}>
         Taper
       </div>
-      <div className="absolute right-1 text-[9px] font-medium uppercase tracking-wider text-zinc-600" style={{ top: cy - 4 }}>
+      <div className="absolute right-1 text-[9px] font-medium uppercase tracking-wider text-zinc-400" style={{ top: cy - 4 }}>
         Spike
       </div>
     </div>
@@ -410,12 +409,12 @@ function DayBars({ s, useTss }: { s: StravaTrainingSnapshot; useTss: boolean }) 
               {v > 0 ? (
                 <div
                   className={`w-full rounded-t-sm bg-linear-to-t ${
-                    isThisWeek ? 'from-[#1d6ff2] to-[#7cc6ff]' : 'from-zinc-700 to-zinc-500'
+                    isThisWeek ? 'from-brand-500 to-brand-300' : 'from-zinc-400 to-zinc-300'
                   }`}
                   style={{ height: `${Math.max(pct, 6)}%` }}
                 />
               ) : (
-                <div className="h-0.75 w-full rounded-full bg-white/10" />
+                <div className="h-0.75 w-full rounded-full bg-zinc-200" />
               )}
             </div>
           );
@@ -426,7 +425,7 @@ function DayBars({ s, useTss }: { s: StravaTrainingSnapshot; useTss: boolean }) 
           <div
             key={d.date}
             className={`flex-1 text-center text-[9px] ${
-              i === s.daily.length - 1 ? 'font-bold text-white' : 'text-zinc-600'
+              i === s.daily.length - 1 ? 'font-bold text-zinc-900' : 'text-zinc-400'
             }`}
           >
             {d.label.charAt(0)}
@@ -445,7 +444,7 @@ function SportBars({ s }: { s: StravaTrainingSnapshot }) {
       {s.sports.map((sp) => (
         <div key={sp.type}>
           <div className="mb-1 flex items-center justify-between text-xs">
-            <span className="flex items-center gap-2 text-zinc-300">
+            <span className="flex items-center gap-2 text-zinc-700">
               <span className={`h-2 w-2 rounded-full ${sportColor(sp.type)}`} />
               {prettySport(sp.type)}
             </span>
@@ -453,7 +452,7 @@ function SportBars({ s }: { s: StravaTrainingSnapshot }) {
               {sp.hours}h · {sp.sessions}×
             </span>
           </div>
-          <div className="h-2 overflow-hidden rounded-full bg-white/5">
+          <div className="h-2 overflow-hidden rounded-full bg-zinc-200/70">
             <div
               className={`h-full rounded-full ${sportBar(sp.type)}`}
               style={{ width: `${Math.max((sp.hours / max) * 100, 4)}%` }}
@@ -471,20 +470,20 @@ function ActivityRow({ a }: { a: SnapshotActivity }) {
     .filter(Boolean)
     .join(' · ');
   return (
-    <div className="flex items-center gap-3 rounded-xl bg-white/3 px-2.5 py-2">
+    <div className="flex items-center gap-3 rounded-xl bg-white/50 px-2.5 py-2">
       <span className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-lg ${sportSoft(a.type)}`}>
         <SportIcon type={a.type} />
       </span>
       <div className="min-w-0 flex-1">
-        <p className="truncate text-xs font-medium text-zinc-200">{a.name || prettySport(a.type)}</p>
+        <p className="truncate text-xs font-medium text-zinc-900">{a.name || prettySport(a.type)}</p>
         <p className="truncate text-[11px] text-zinc-500">{meta}</p>
       </div>
       {a.tss != null ? (
-        <span className="shrink-0 rounded-md bg-sky-500/15 px-2 py-0.5 text-[11px] font-semibold tabular-nums text-sky-300">
+        <span className="shrink-0 rounded-md bg-sky-100 px-2 py-0.5 text-[11px] font-semibold tabular-nums text-sky-700">
           {a.tss} TSS
         </span>
       ) : a.avgHr != null ? (
-        <span className="shrink-0 text-[11px] tabular-nums text-zinc-400">{a.avgHr} bpm</span>
+        <span className="shrink-0 text-[11px] tabular-nums text-zinc-500">{a.avgHr} bpm</span>
       ) : null}
     </div>
   );
@@ -492,11 +491,11 @@ function ActivityRow({ a }: { a: SnapshotActivity }) {
 
 function Stat({ label, value, unit }: { label: string; value: React.ReactNode; unit?: string }) {
   return (
-    <div className="rounded-2xl bg-[#161618] px-3.5 py-3 ring-1 ring-white/5">
+    <div className="rounded-2xl bg-white/55 px-3.5 py-3 ring-1 ring-white/60">
       <p className="text-[10px] font-semibold uppercase tracking-[0.16em] text-zinc-500">{label}</p>
-      <p className="mt-1 text-xl font-bold tabular-nums text-white">
+      <p className="mt-1 text-xl font-bold tabular-nums text-zinc-900">
         {value}
-        {unit && <span className="ml-1 text-xs font-medium text-zinc-500">{unit}</span>}
+        {unit && <span className="ml-1 text-xs font-medium text-zinc-400">{unit}</span>}
       </p>
     </div>
   );
@@ -570,13 +569,13 @@ function SportIcon({ type }: { type: string }) {
   );
 }
 
-// ── Empty / fallback states (dark) ───────────────────────────────────────────
+// ── Empty / fallback states ──────────────────────────────────────────────────
 
 function ConnectInline() {
   return (
     <Link
       to="/app/profile/edit"
-      className="group flex items-center gap-4 rounded-2xl bg-[#161618] px-4 py-4 ring-1 ring-white/5 transition hover:ring-orange-500/40"
+      className="group flex items-center gap-4 rounded-2xl bg-white/55 px-4 py-4 ring-1 ring-white/60 transition hover:ring-orange-400/50"
     >
       <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl" style={{ backgroundColor: '#FC4C02' }}>
         <svg viewBox="0 0 24 24" className="h-5 w-5 text-white" fill="currentColor" aria-hidden>
@@ -584,10 +583,10 @@ function ConnectInline() {
         </svg>
       </span>
       <div className="min-w-0">
-        <p className="text-sm font-semibold text-white">Connect Strava</p>
-        <p className="text-xs text-zinc-400">See your last 2 weeks of load, consistency & build rate.</p>
+        <p className="text-sm font-semibold text-zinc-900">Connect Strava</p>
+        <p className="text-xs text-zinc-500">See your last 2 weeks of load, consistency & build rate.</p>
       </div>
-      <span className="ml-auto shrink-0 text-xs font-medium text-zinc-500 transition group-hover:text-white">
+      <span className="ml-auto shrink-0 text-xs font-medium text-zinc-500 transition group-hover:text-zinc-900">
         Connect →
       </span>
     </Link>
@@ -596,9 +595,9 @@ function ConnectInline() {
 
 function Unavailable({ onRetry }: { onRetry: () => void }) {
   return (
-    <div className="rounded-2xl bg-[#161618] px-5 py-10 text-center text-sm text-zinc-400 ring-1 ring-white/5">
+    <div className="rounded-2xl bg-white/55 px-5 py-10 text-center text-sm text-zinc-500 ring-1 ring-white/60">
       Couldn't reach Strava just now.{' '}
-      <button type="button" onClick={onRetry} className="font-medium text-white underline">
+      <button type="button" onClick={onRetry} className="font-medium text-zinc-900 underline">
         Try again
       </button>
     </div>
@@ -607,8 +606,8 @@ function Unavailable({ onRetry }: { onRetry: () => void }) {
 
 function Rested() {
   return (
-    <div className="rounded-2xl bg-[#161618] px-5 py-10 text-center ring-1 ring-white/5">
-      <p className="text-sm font-medium text-white">No sessions in the last 2 weeks</p>
+    <div className="rounded-2xl bg-white/55 px-5 py-10 text-center ring-1 ring-white/60">
+      <p className="text-sm font-medium text-zinc-900">No sessions in the last 2 weeks</p>
       <p className="mt-1 text-xs text-zinc-500">Fully rested — or your Strava activities are private.</p>
     </div>
   );
@@ -619,10 +618,10 @@ function SkeletonBody() {
     <div className="space-y-3">
       <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
         {Array.from({ length: 3 }).map((_, i) => (
-          <div key={i} className="h-48 animate-pulse rounded-2xl bg-[#161618]" />
+          <div key={i} className="h-48 animate-pulse rounded-2xl bg-white/50" />
         ))}
       </div>
-      <div className="h-40 animate-pulse rounded-2xl bg-[#161618]" />
+      <div className="h-40 animate-pulse rounded-2xl bg-white/50" />
     </div>
   );
 }
@@ -646,10 +645,10 @@ function fmtDur(min: number): string {
 
 function rampTone(pct: number | null): { color: string } {
   if (pct == null) return { color: 'text-zinc-400' };
-  if (pct > 25) return { color: 'text-rose-400' };
-  if (pct > 12) return { color: 'text-amber-400' };
-  if (pct < -5) return { color: 'text-sky-400' };
-  return { color: 'text-emerald-400' };
+  if (pct > 25) return { color: 'text-rose-500' };
+  if (pct > 12) return { color: 'text-amber-500' };
+  if (pct < -5) return { color: 'text-sky-500' };
+  return { color: 'text-emerald-600' };
 }
 
 function prettySport(t: string): string {
@@ -689,11 +688,11 @@ function sportBar(t: string): string {
 }
 
 function sportText(t: string): string {
-  if (/Ride|MountainBike|Gravel|EBike/i.test(t)) return 'text-amber-400';
-  if (/Run/i.test(t)) return 'text-emerald-400';
-  if (/Swim/i.test(t)) return 'text-sky-400';
-  if (/Weight|Workout|Strength|Yoga/i.test(t)) return 'text-violet-400';
-  return 'text-zinc-300';
+  if (/Ride|MountainBike|Gravel|EBike/i.test(t)) return 'text-amber-500';
+  if (/Run/i.test(t)) return 'text-emerald-500';
+  if (/Swim/i.test(t)) return 'text-sky-500';
+  if (/Weight|Workout|Strength|Yoga/i.test(t)) return 'text-violet-500';
+  return 'text-zinc-500';
 }
 
 // Literal class strings (incl. opacity) so Tailwind's scanner can see them —

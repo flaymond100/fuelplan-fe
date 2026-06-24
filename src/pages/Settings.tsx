@@ -3,14 +3,12 @@ import PageHeader from '../components/PageHeader';
 
 export default function Settings() {
   return (
-    <div>
+    <div className="space-y-6">
       <PageHeader title="Settings" subtitle="Account, password, notifications, and preferences." />
-      <div className="mt-8">
-        <ComingSoon
-          title="Settings coming soon"
-          description="Change your email, password, and notification preferences here."
-        />
-      </div>
+      <ComingSoon
+        title="Settings coming soon"
+        description="Change your email, password, and notification preferences here."
+      />
     </div>
   );
 }

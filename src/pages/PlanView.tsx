@@ -5,12 +5,12 @@ import ElevationProfile from '../components/ElevationProfile';
 import ClimbCard from '../components/ClimbCard';
 import PlanDays from '../components/PlanDays';
 import TrainingLoadPanel from '../components/TrainingLoadPanel';
+import { Card, SectionCard, StatCard } from '../components/ui';
 import { usePlan, useRouteTrack } from '../hooks/usePlans';
 import { useWeather } from '../hooks/useWeather';
 import { degToCompass } from '../lib/weather';
 import { bearingDeg, estimateDraft, type DraftEstimate } from '../lib/draft';
 import { formatDate } from '../lib/profileFormat';
-import type { PlanNutrientTotals } from '../types';
 
 export default function PlanView() {
   const { id } = useParams<{ id: string }>();
@@ -20,7 +20,7 @@ export default function PlanView() {
     return (
       <div>
         <BackLink />
-        <div className="mt-4 rounded-2xl bg-zinc-950 p-12 text-center text-sm text-zinc-500">
+        <div className="mt-4 rounded-3xl bg-white/60 p-12 text-center text-sm text-zinc-500 ring-1 ring-white/70 backdrop-blur-xl">
           Loading plan…
         </div>
       </div>
@@ -44,41 +44,60 @@ export default function PlanView() {
     .filter(Boolean)
     .join(' · ');
 
+  // KPI strip shows in-race fuelling only (the `race` phase), not the whole
+  // multi-day plan. Falls back to plan totals if there's no race phase.
+  const racePhases = p.phases.filter((ph) => ph.id === 'race');
+  const raceTotals = racePhases.length
+    ? racePhases.reduce(
+        (acc, ph) => ({
+          carbsG: acc.carbsG + ph.totals.carbsG,
+          fluidsMl: acc.fluidsMl + ph.totals.fluidsMl,
+          sodiumMg: acc.sodiumMg + ph.totals.sodiumMg,
+          caffeineMg: acc.caffeineMg + ph.totals.caffeineMg,
+          kcal: acc.kcal + ph.totals.kcal,
+        }),
+        { carbsG: 0, fluidsMl: 0, sodiumMg: 0, caffeineMg: 0, kcal: 0 },
+      )
+    : p.totals;
+
   return (
-    <div>
+    <div className="space-y-6 text-zinc-900">
       <BackLink />
 
-      <div className="mt-4 text-zinc-900">
-        <div>
-          {tagline && (
-            <p className="text-xs font-semibold uppercase tracking-[0.2em] text-amber-400">
-              {tagline}
-            </p>
-          )}
-          <h1 className="mt-2 text-3xl font-bold tracking-tight md:text-4xl">
-            {plan.race_name ?? 'Your plan'}
-          </h1>
-          {p.summary && <p className="mt-3 max-w-2xl text-zinc-600">{p.summary}</p>}
-
-          <div className="mt-5 flex flex-wrap gap-2">
-            {plan.race_date && <Pill>{formatDate(plan.race_date)}</Pill>}
-            {plan.distance_km != null && <Pill>{plan.distance_km} km</Pill>}
-            {plan.elevation_m != null && <Pill>{plan.elevation_m} m climb</Pill>}
-            <Pill>Est. {formatDuration(p.estimatedDurationMin)}</Pill>
-          </div>
+      {/* Hero */}
+      <div>
+        {tagline && (
+          <p className="text-xs font-semibold uppercase tracking-[0.2em] text-brand-600">{tagline}</p>
+        )}
+        <h1 className="mt-2 text-3xl font-bold tracking-tight md:text-4xl">
+          {plan.race_name ?? 'Your plan'}
+        </h1>
+        {p.summary && <p className="mt-3 max-w-3xl text-zinc-600">{p.summary}</p>}
+        <div className="mt-5 flex flex-wrap gap-2">
+          {plan.race_date && <Pill>{formatDate(plan.race_date)}</Pill>}
+          {plan.distance_km != null && <Pill>{plan.distance_km} km</Pill>}
+          {plan.elevation_m != null && <Pill>{plan.elevation_m} m climb</Pill>}
+          <Pill>Est. {formatDuration(p.estimatedDurationMin)}</Pill>
         </div>
+      </div>
 
-       
-
-        <div className="mt-6">
-          <WeatherSection
-            lat={rp.gpxMeta?.startLat}
-            lng={rp.gpxMeta?.startLng}
-            date={plan.race_date}
-          />
+      {/* In-race fuelling totals (the race phase only, not the whole plan) */}
+      <div>
+        <p className="mb-3 text-xs font-semibold uppercase tracking-[0.18em] text-zinc-500">
+          During the race
+        </p>
+        <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-5">
+          <StatCard label="Carbs" value={raceTotals.carbsG.toLocaleString()} unit="g" icon={<CarbsIcon />} />
+          <StatCard label="Fluids" value={raceTotals.fluidsMl.toLocaleString()} unit="ml" icon={<FluidIcon />} />
+          <StatCard label="Sodium" value={raceTotals.sodiumMg.toLocaleString()} unit="mg" icon={<SaltIcon />} />
+          <StatCard label="Caffeine" value={raceTotals.caffeineMg.toLocaleString()} unit="mg" icon={<CaffeineIcon />} />
+          <StatCard label="Energy" value={raceTotals.kcal.toLocaleString()} unit="kcal" icon={<FlameIcon />} />
         </div>
+      </div>
 
-        <div className="mt-4">
+      {/* Details: route map (left) · climbs + weather (right sidebar) */}
+      <div className="grid gap-4 xl:grid-cols-3 xl:items-start">
+        <div className="xl:col-span-2">
           <RouteSection
             id={id}
             lat={rp.gpxMeta?.startLat}
@@ -89,19 +108,21 @@ export default function PlanView() {
             discipline={rp.discipline}
           />
         </div>
-
-        <div className="mt-6">
-          <TrainingLoadPanel />
-        </div>
-        <div className="mt-6">
-        
-          <NutritionTotals totals={p.totals} />
-        </div>
-
-        <div className="mt-6">
-          <PlanDays plan={plan} />
+        <div className="space-y-4">
+          <ClimbBreakdown id={id} />
+          <WeatherSection
+            lat={rp.gpxMeta?.startLat}
+            lng={rp.gpxMeta?.startLng}
+            date={plan.race_date}
+          />
         </div>
       </div>
+
+      {/* Training — last 14 days */}
+      <TrainingLoadPanel />
+
+      {/* Nutrition by day */}
+      <PlanDays plan={plan} />
     </div>
   );
 }
@@ -148,39 +169,67 @@ function RouteSection({
 
   if (isLoading) {
     return (
-      <div className="grid h-128 w-full place-items-center rounded-xl bg-zinc-100 text-sm text-zinc-500">
-        Loading route…
-      </div>
+      <SectionCard title="Route">
+        <div className="grid h-128 w-full place-items-center rounded-2xl bg-white/40 text-sm text-zinc-500">
+          Loading route…
+        </div>
+      </SectionCard>
     );
   }
   if (isError || !data || data.track.length === 0) {
     return (
-      <div className="grid h-128 w-full place-items-center rounded-xl border border-zinc-200 bg-zinc-50 text-sm text-zinc-500">
-        Route map unavailable.
-      </div>
+      <SectionCard title="Route">
+        <div className="grid h-128 w-full place-items-center rounded-2xl bg-white/40 text-sm text-zinc-500">
+          Route map unavailable.
+        </div>
+      </SectionCard>
     );
   }
   return (
-    <>
+    <SectionCard title="Route">
       {draft && <DraftCard draft={draft} />}
 
       <RouteMap ref={mapRef} track={data.track} profile={data.profile} wind={wind} />
       {data.profile && data.profile.length >= 2 && (
         <ElevationProfile points={data.profile} climbs={data.climbs} onHover={handleHover} />
       )}
-      {data.climbs.length > 0 && data.profile && (
-        <div className="mt-4">
-          <p className="mb-2 text-[10px] font-semibold uppercase tracking-[0.18em] text-zinc-400">
-            Climb breakdown
-          </p>
-          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-            {data.climbs.map((climb, i) => (
-              <ClimbCard key={i} climb={climb} index={i} points={data.profile!} />
-            ))}
-          </div>
+    </SectionCard>
+  );
+}
+
+/** Climb breakdown — collapsible card, lives in the right sidebar beside the map. */
+function ClimbBreakdown({ id }: { id: string | undefined }) {
+  const { data } = useRouteTrack(id);
+  const [open, setOpen] = useState(true);
+  if (!data?.profile || data.climbs.length === 0) return null;
+  return (
+    <Card className="p-6">
+      <button
+        type="button"
+        onClick={() => setOpen((v) => !v)}
+        aria-expanded={open}
+        className="group flex w-full items-center justify-between gap-3 text-left"
+      >
+        <h2 className="text-base font-semibold text-zinc-900">Climb breakdown</h2>
+        <span className="flex items-center gap-2 text-xs font-medium text-zinc-500">
+          {data.climbs.length} {data.climbs.length === 1 ? 'climb' : 'climbs'}
+          <svg
+            viewBox="0 0 20 20"
+            fill="currentColor"
+            className={`h-4 w-4 text-zinc-400 transition-transform group-hover:text-zinc-700 ${open ? 'rotate-90' : ''}`}
+          >
+            <path fillRule="evenodd" d="M7.21 14.77a.75.75 0 0 1 .02-1.06L11.168 10 7.23 6.29a.75.75 0 1 1 1.04-1.08l4.5 4.25a.75.75 0 0 1 0 1.08l-4.5 4.25a.75.75 0 0 1-1.06-.02Z" clipRule="evenodd" />
+          </svg>
+        </span>
+      </button>
+      {open && (
+        <div className="mt-4 grid grid-cols-1 gap-3">
+          {data.climbs.map((climb, i) => (
+            <ClimbCard key={i} climb={climb} index={i} points={data.profile!} />
+          ))}
         </div>
       )}
-    </>
+    </Card>
   );
 }
 
@@ -194,7 +243,7 @@ function DraftCard({ draft }: { draft: DraftEstimate }) {
       : 'Mostly crosswind — echelon positioning helps more than sitting directly on a wheel.';
 
   return (
-    <div className="mt-4 mb-8 flex items-center gap-4 rounded-xl border border-zinc-200 bg-zinc-50 p-4">
+    <div className="mt-4 mb-8 flex items-center gap-4 rounded-2xl bg-white/55 p-4 ring-1 ring-white/60">
       <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-sky-100 text-sky-600">
         <svg viewBox="0 0 24 24" className="h-6 w-6" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
           <path d="M3 8h11a3 3 0 1 0-3-3M3 12h15a3 3 0 1 1-3 3M3 16h9a2.5 2.5 0 1 1-2.5 2.5" />
@@ -231,15 +280,18 @@ function WeatherSection({
   if (data.kind === 'out_of_range') {
     if (data.reason === 'past') return null;
     return (
-      <div className="rounded-xl border border-zinc-200 bg-zinc-50 px-4 py-3 text-sm text-zinc-600">
-        Forecast available closer to race day — {data.daysAway} days out.
-      </div>
+      <SectionCard title="Race-day weather">
+        <p className="text-sm text-zinc-600">
+          Forecast available closer to race day — {data.daysAway} days out.
+        </p>
+      </SectionCard>
     );
   }
 
   const f = data.data;
   return (
-    <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+    <SectionCard title="Race-day weather">
+      <div className="grid grid-cols-2 gap-3">
       <WeatherTile
         label="Conditions"
         main={weatherLabel(f.weatherCode)}
@@ -257,7 +309,7 @@ function WeatherSection({
         icon={
           <svg
             viewBox="0 0 24 24"
-            className="h-5 w-5 text-amber-400"
+            className="h-5 w-5 text-brand-600"
             fill="none"
             stroke="currentColor"
             strokeWidth="2"
@@ -270,56 +322,8 @@ function WeatherSection({
         }
       />
       <WeatherTile label="Rain" main={`${f.precipitationProbabilityPct}%`} icon={<Droplet />} />
-    </div>
-  );
-}
-
-function NutritionTotals({ totals }: { totals: PlanNutrientTotals }) {
-  const [open, setOpen] = useState(false);
-  return (
-    <div>
-      <button
-        type="button"
-        onClick={() => setOpen((v) => !v)}
-        aria-expanded={open}
-        className="inline-flex items-center gap-2 text-sm font-semibold text-zinc-700 transition hover:text-zinc-900"
-      >
-        <svg
-          viewBox="0 0 20 20"
-          fill="currentColor"
-          className={`h-4 w-4 text-zinc-400 transition-transform ${open ? 'rotate-90' : ''}`}
-        >
-          <path
-            fillRule="evenodd"
-            d="M7.21 14.77a.75.75 0 0 1 .02-1.06L11.168 10 7.23 6.29a.75.75 0 1 1 1.04-1.08l4.5 4.25a.75.75 0 0 1 0 1.08l-4.5 4.25a.75.75 0 0 1-1.06-.02Z"
-            clipRule="evenodd"
-          />
-        </svg>
-        Nutrition totals
-      </button>
-
-      {open && (
-        <div className="mt-3 grid grid-cols-2 gap-px overflow-hidden rounded-xl border border-zinc-200 bg-zinc-200 sm:grid-cols-3 lg:grid-cols-5">
-          <MetricTile label="Carbs" value={totals.carbsG} unit="g" />
-          <MetricTile label="Fluids" value={totals.fluidsMl} unit="ml" />
-          <MetricTile label="Sodium" value={totals.sodiumMg} unit="mg" />
-          <MetricTile label="Caffeine" value={totals.caffeineMg} unit="mg" />
-          <MetricTile label="Energy" value={totals.kcal} unit="kcal" />
-        </div>
-      )}
-    </div>
-  );
-}
-
-function MetricTile({ label, value, unit }: { label: string; value: number; unit: string }) {
-  return (
-    <div className="bg-white px-4 py-5">
-      <p className="text-xs font-medium uppercase tracking-wider text-zinc-500">{label}</p>
-      <p className="mt-1.5 text-2xl font-bold tabular-nums text-zinc-900">
-        {value.toLocaleString()}
-        <span className="ml-1 text-sm font-medium text-zinc-500">{unit}</span>
-      </p>
-    </div>
+      </div>
+    </SectionCard>
   );
 }
 
@@ -335,7 +339,7 @@ function WeatherTile({
   icon?: React.ReactNode;
 }) {
   return (
-    <div className="rounded-xl border border-zinc-200 bg-zinc-50 px-4 py-3">
+    <div className="rounded-2xl bg-white/55 px-4 py-3 ring-1 ring-white/60">
       <p className="text-xs font-medium uppercase tracking-wider text-zinc-500">{label}</p>
       <div className="mt-1.5 flex items-center gap-2">
         {icon}
@@ -348,7 +352,7 @@ function WeatherTile({
 
 function Pill({ children }: { children: React.ReactNode }) {
   return (
-    <span className="rounded-full border border-zinc-200 bg-zinc-50 px-3 py-1 text-sm text-zinc-700">
+    <span className="rounded-full bg-white/70 px-3 py-1 text-sm text-zinc-700 ring-1 ring-white/80">
       {children}
     </span>
   );
@@ -424,6 +428,56 @@ function Droplet() {
   return (
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="h-5 w-5 text-sky-400">
       <path d="M12 2.5S5 10 5 14.5a7 7 0 0 0 14 0C19 10 12 2.5 12 2.5Z" />
+    </svg>
+  );
+}
+
+// ── KPI tile icons (inherit IconBadge's neutral colour via currentColor) ──────
+
+function CarbsIcon() {
+  return (
+    <svg viewBox="0 0 24 24" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M12 21V8" />
+      <path d="M12 8c0-2 1.6-3.6 3.6-3.6C15.6 6.4 14 8 12 8Z" />
+      <path d="M12 8c0-2-1.6-3.6-3.6-3.6C8.4 6.4 10 8 12 8Z" />
+      <path d="M12 14c0-2 1.6-3.6 3.6-3.6C15.6 12.4 14 14 12 14Z" />
+      <path d="M12 14c0-2-1.6-3.6-3.6-3.6C8.4 12.4 10 14 12 14Z" />
+    </svg>
+  );
+}
+
+function FluidIcon() {
+  return (
+    <svg viewBox="0 0 24 24" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M12 2.5S5 10 5 14.5a7 7 0 0 0 14 0C19 10 12 2.5 12 2.5Z" />
+    </svg>
+  );
+}
+
+function SaltIcon() {
+  return (
+    <svg viewBox="0 0 24 24" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M8 9.5 8.7 21h6.6L16 9.5Z" />
+      <path d="M8 9.5a4 4 0 0 1 8 0Z" />
+      <path d="M11 5V3.5h2V5" />
+    </svg>
+  );
+}
+
+function CaffeineIcon() {
+  return (
+    <svg viewBox="0 0 24 24" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M5 8h11v5a4 4 0 0 1-4 4H9a4 4 0 0 1-4-4V8Z" />
+      <path d="M16 9h2.5a2.5 2.5 0 0 1 0 5H16" />
+      <path d="M8.5 3c-.5 1 .5 1.5 0 2.5M11.5 3c-.5 1 .5 1.5 0 2.5" />
+    </svg>
+  );
+}
+
+function FlameIcon() {
+  return (
+    <svg viewBox="0 0 24 24" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M12 3c1 3 4 4 4 8a4 4 0 0 1-8 0c0-1.5.5-2.6 1-3.2.5 1 1.4 1.5 2 1.5C11.5 7.4 11 5.2 12 3Z" />
     </svg>
   );
 }

@@ -5,15 +5,15 @@ import { supabase } from '../lib/supabase';
 export default function Landing() {
   const { session } = useSession();
   return (
-    <div className="min-h-screen bg-zinc-950 text-zinc-100 antialiased selection:bg-amber-500/30 selection:text-amber-100">
+    <div className="min-h-screen bg-zinc-950 text-zinc-100 antialiased selection:bg-brand-500/30 selection:text-brand-100">
       <div className="pointer-events-none absolute inset-x-0 top-0 -z-0 h-[640px] overflow-hidden">
-        <div className="absolute left-1/2 top-[-120px] h-[520px] w-[820px] -translate-x-1/2 rounded-full bg-gradient-to-br from-amber-500/25 via-orange-600/15 to-rose-600/10 blur-3xl" />
-        <div className="absolute right-[-160px] top-[80px] h-[360px] w-[420px] rounded-full bg-gradient-to-br from-fuchsia-500/10 to-amber-500/10 blur-3xl" />
+        <div className="absolute left-1/2 top-[-120px] h-[520px] w-[820px] -translate-x-1/2 rounded-full bg-linear-to-br from-brand-500/25 via-brand-600/15 to-rose-600/10 blur-3xl" />
+        <div className="absolute right-[-160px] top-[80px] h-[360px] w-[420px] rounded-full bg-linear-to-br from-fuchsia-500/10 to-brand-500/10 blur-3xl" />
       </div>
 
       <header className="relative z-10 mx-auto flex max-w-6xl items-center justify-between px-6 py-6">
         <Link to="/" className="flex items-center gap-2 text-lg font-semibold tracking-tight">
-          <span className="grid h-8 w-8 place-items-center rounded-lg bg-gradient-to-br from-amber-400 to-orange-600 text-zinc-950 shadow-lg shadow-amber-500/20">
+          <span className="grid h-8 w-8 place-items-center rounded-lg bg-linear-to-br from-brand-300 to-brand-600 text-zinc-950 shadow-lg shadow-brand-500/30">
             <svg viewBox="0 0 24 24" fill="none" className="h-5 w-5" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
               <path d="M13 2 4 14h7l-1 8 9-12h-7l1-8Z" />
             </svg>
@@ -32,7 +32,7 @@ export default function Landing() {
             </span>
             <Link
               to="/app"
-              className="rounded-full bg-gradient-to-br from-amber-400 to-orange-600 px-5 py-2 text-sm font-semibold text-zinc-950 shadow-lg shadow-orange-600/20 transition hover:shadow-orange-500/40 hover:brightness-110"
+              className="rounded-full bg-brand-400 px-5 py-2 text-sm font-semibold text-zinc-950 shadow-lg shadow-brand-500/30 transition hover:shadow-brand-400/50 hover:brightness-110"
             >
               Go to app
             </Link>
@@ -54,7 +54,7 @@ export default function Landing() {
             </Link>
             <Link
               to="/signup"
-              className="rounded-full bg-gradient-to-br from-amber-400 to-orange-600 px-5 py-2 text-sm font-semibold text-zinc-950 shadow-lg shadow-orange-600/20 transition hover:shadow-orange-500/40 hover:brightness-110"
+              className="rounded-full bg-brand-400 px-5 py-2 text-sm font-semibold text-zinc-950 shadow-lg shadow-brand-500/30 transition hover:shadow-brand-400/50 hover:brightness-110"
             >
               Sign Up
             </Link>
@@ -67,7 +67,7 @@ export default function Landing() {
           <div className="mx-auto max-w-3xl text-center">
             <h1 className="mt-6 text-5xl font-bold tracking-tight md:text-7xl">
               Your race-day fuel,{' '}
-              <span className="bg-gradient-to-br from-amber-300 via-orange-400 to-rose-500 bg-clip-text text-transparent">
+              <span className="bg-linear-to-br from-brand-300 via-brand-400 to-brand-600 bg-clip-text text-transparent">
                 dialled in.
               </span>
             </h1>
@@ -78,7 +78,7 @@ export default function Landing() {
             <div className="mt-10 flex flex-col items-center justify-center gap-4 sm:flex-row">
               <Link
                 to="/signup"
-                className="group inline-flex items-center gap-2 rounded-full bg-gradient-to-br from-amber-400 to-orange-600 px-7 py-3.5 text-base font-semibold text-zinc-950 shadow-xl shadow-orange-600/25 transition hover:shadow-orange-500/50 hover:brightness-110"
+                className="group inline-flex items-center gap-2 rounded-full bg-brand-400 px-7 py-3.5 text-base font-semibold text-zinc-950 shadow-xl shadow-brand-500/30 transition hover:shadow-brand-400/50 hover:brightness-110"
               >
                 Sign Up
                 <svg viewBox="0 0 20 20" fill="currentColor" className="h-4 w-4 transition group-hover:translate-x-0.5">
@@ -153,8 +153,8 @@ export default function Landing() {
         </section>
 
         <section id="pricing" className="mx-auto max-w-4xl px-6 py-28">
-          <div className="relative overflow-hidden rounded-3xl border border-amber-500/20 bg-gradient-to-br from-zinc-900 via-zinc-900 to-zinc-950 p-10 md:p-16">
-            <div className="pointer-events-none absolute -right-20 -top-20 h-72 w-72 rounded-full bg-amber-500/20 blur-3xl" />
+          <div className="relative overflow-hidden rounded-3xl border border-brand-500/20 bg-linear-to-br from-zinc-900 via-zinc-900 to-zinc-950 p-10 md:p-16">
+            <div className="pointer-events-none absolute -right-20 -top-20 h-72 w-72 rounded-full bg-brand-500/20 blur-3xl" />
             <div className="relative">
               <h2 className="text-4xl font-bold tracking-tight md:text-5xl">
                 Ready for your next race?
@@ -165,7 +165,7 @@ export default function Landing() {
               <div className="mt-8">
                 <Link
                   to="/signup"
-                  className="group inline-flex items-center gap-2 rounded-full bg-gradient-to-br from-amber-400 to-orange-600 px-7 py-3.5 text-base font-semibold text-zinc-950 shadow-xl shadow-orange-600/25 transition hover:shadow-orange-500/50 hover:brightness-110"
+                  className="group inline-flex items-center gap-2 rounded-full bg-brand-400 px-7 py-3.5 text-base font-semibold text-zinc-950 shadow-xl shadow-brand-500/30 transition hover:shadow-brand-400/50 hover:brightness-110"
                 >
                   Sign Up
                   <svg viewBox="0 0 20 20" fill="currentColor" className="h-4 w-4 transition group-hover:translate-x-0.5">
@@ -202,8 +202,8 @@ function FeatureCard({
   icon: React.ReactNode;
 }) {
   return (
-    <div className="group relative overflow-hidden rounded-sm border border-zinc-800 bg-zinc-900/40 p-7 backdrop-blur transition hover:border-amber-500/30 hover:bg-zinc-900/70">
-      <div className="mb-5 inline-flex h-11 w-11 items-center justify-center rounded-sm bg-gradient-to-br from-amber-400/20 to-orange-600/10 text-amber-300 ring-1 ring-inset ring-amber-500/20">
+    <div className="group relative overflow-hidden rounded-sm border border-zinc-800 bg-zinc-900/40 p-7 backdrop-blur transition hover:border-brand-500/30 hover:bg-zinc-900/70">
+      <div className="mb-5 inline-flex h-11 w-11 items-center justify-center rounded-sm bg-linear-to-br from-brand-400/20 to-brand-600/10 text-brand-300 ring-1 ring-inset ring-brand-500/20">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" className="h-5 w-5">
           {icon}
         </svg>
@@ -217,7 +217,7 @@ function FeatureCard({
 function Step({ n, title, body }: { n: string; title: string; body: string }) {
   return (
     <div className="relative">
-      <div className="text-sm font-mono font-semibold text-amber-400">{n}</div>
+      <div className="text-sm font-mono font-semibold text-brand-400">{n}</div>
       <h3 className="mt-3 text-xl font-semibold text-white">{title}</h3>
       <p className="mt-3 text-zinc-400 leading-relaxed">{body}</p>
     </div>

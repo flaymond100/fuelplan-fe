@@ -1,13 +1,60 @@
 @import "tailwindcss";
 
+/* ── Design tokens ──────────────────────────────────────────────────────────
+   Brand = lime/chartreuse (energy · "go"). Fuel = amber (warmth · carbs).
+   Everything else leans on Tailwind's built-in zinc / emerald / rose / sky.
+   Retune the whole app's accent here. */
+@theme {
+  --color-brand-50:  #f7fee7;
+  --color-brand-100: #ecfccb;
+  --color-brand-200: #d9f99d;
+  --color-brand-300: #bef264;
+  --color-brand-400: #a3e635;
+  --color-brand-500: #84cc16;
+  --color-brand-600: #65a30d;
+  --color-brand-700: #4d7c0f;
+
+  --color-fuel-300: #fcd34d;
+  --color-fuel-400: #fbbf24;
+  --color-fuel-500: #f59e0b;
+  --color-fuel-600: #d97706;
+}
+
+/* ── App backdrop ───────────────────────────────────────────────────────────
+   Soft light base with a lime orb (top-right) and a warm amber orb
+   (bottom-left) — the blend of the two reference dashboards. */
+.app-backdrop {
+  background-color: #eef2ec;
+  background-image:
+    radial-gradient(46rem 46rem at 88% -10%, rgba(163, 230, 53, 0.26), transparent 60%),
+    radial-gradient(40rem 40rem at 4% 110%, rgba(251, 191, 36, 0.18), transparent 58%),
+    radial-gradient(34rem 34rem at 60% 120%, rgba(132, 204, 22, 0.12), transparent 60%);
+  background-attachment: fixed;
+}
+
+/* Frosted-glass surface, used by the <Card> primitive and ad-hoc panels. */
+.glass {
+  background-color: rgb(255 255 255 / 0.62);
+  backdrop-filter: blur(18px) saturate(140%);
+  -webkit-backdrop-filter: blur(18px) saturate(140%);
+}
+
+/* Hide scrollbars on the mobile nav pill row. */
+.no-scrollbar::-webkit-scrollbar { display: none; }
+.no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+
+/* ── Motion ─────────────────────────────────────────────────────────────── */
 @keyframes fade-in {
   from { opacity: 0; transform: translateY(4px); }
   to { opacity: 1; transform: translateY(0); }
 }
+.animate-fade-in { animation: fade-in 0.4s ease-out; }
 
-.animate-fade-in {
-  animation: fade-in 0.4s ease-out;
+@keyframes pop-in {
+  from { opacity: 0; transform: translateY(8px) scale(0.99); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
 }
+.animate-pop-in { animation: pop-in 0.45s cubic-bezier(0.22, 1, 0.36, 1) both; }
 
 /* Wind-direction arrows on the route map (Leaflet divIcon markers) */
 .wind-arrow {

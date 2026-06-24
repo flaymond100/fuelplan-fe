@@ -6,6 +6,7 @@ import GeneratingOverlay from '../components/GeneratingOverlay';
 import { parseGpx, type GpxSummary } from '../lib/gpx';
 import { useWeather } from '../hooks/useWeather';
 import { api, errorStatus } from '../lib/api';
+import { SectionCard, Field, ChipButton, inputClass, buttonClass } from '../components/ui';
 import type { PlanRow } from '../types';
 
 type Discipline = 'cycling' | 'running';
@@ -76,9 +77,6 @@ const CAFFEINE_LABELS: Record<Caffeine, string> = {
   standard: 'Standard',
   heavy: 'Heavy',
 };
-
-const inputClass =
-  'block w-full rounded-lg border border-zinc-300 bg-white px-3 py-2 text-sm text-zinc-900 transition focus:border-amber-500 focus:outline-none focus:ring-2 focus:ring-amber-500/30';
 
 export default function NewPlan() {
   const navigate = useNavigate();
@@ -208,7 +206,7 @@ export default function NewPlan() {
       />
 
       <form onSubmit={handleSubmit} className="mt-8 space-y-6">
-        <Section title="Race" subtitle="Where, when, and what.">
+        <SectionCard title="Race" subtitle="Where, when, and what.">
           <div className="grid gap-5 lg:grid-cols-2">
             <Field label="Race name" htmlFor="raceName" required>
               <input
@@ -255,9 +253,9 @@ export default function NewPlan() {
               ))}
             </div>
           </Field>
-        </Section>
+        </SectionCard>
 
-        <Section title="Route" subtitle="GPX is preferred — we'll extract distance and elevation.">
+        <SectionCard title="Route" subtitle="GPX is preferred — we'll extract distance and elevation.">
           <Field label="GPX file">
             <div className="flex flex-wrap items-center gap-3">
               <input
@@ -270,7 +268,7 @@ export default function NewPlan() {
               <button
                 type="button"
                 onClick={() => fileInputRef.current?.click()}
-                className="inline-flex items-center gap-2 rounded-lg border border-zinc-300 bg-white px-4 py-2 text-sm font-medium text-zinc-700 transition hover:border-zinc-400 hover:bg-zinc-50"
+                className="inline-flex items-center gap-2 rounded-full bg-white/70 px-4 py-2 text-sm font-medium text-zinc-700 ring-1 ring-white/80 backdrop-blur transition hover:bg-white"
               >
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" className="h-4 w-4">
                   <path d="M12 3v12 M7 8l5-5 5 5 M5 21h14" />
@@ -355,9 +353,9 @@ export default function NewPlan() {
               ))}
             </div>
           </Field>
-        </Section>
+        </SectionCard>
 
-        <Section title="Goal" subtitle="How hard you'll go.">
+        <SectionCard title="Goal" subtitle="How hard you'll go.">
           <Field label="Effort level">
             <div className="flex flex-wrap gap-2">
               {(Object.entries(EFFORT_LABELS) as [EffortLevel, string][]).map(([key, label]) => (
@@ -388,9 +386,9 @@ export default function NewPlan() {
               placeholder="e.g. 3:45"
             />
           </Field>
-        </Section>
+        </SectionCard>
 
-        <Section
+        <SectionCard
           title="Plan options"
           subtitle="Overrides for this race only — your profile defaults still apply otherwise."
         >
@@ -440,7 +438,7 @@ export default function NewPlan() {
               ))}
             </div>
           </Field>
-        </Section>
+        </SectionCard>
 
         <TrainingContextSection
           planWindow={form.planWindow}
@@ -455,17 +453,10 @@ export default function NewPlan() {
           {submitting && (
             <span className="mr-auto text-sm text-zinc-500">This can take up to 2 minutes…</span>
           )}
-          <Link
-            to="/app/plans"
-            className="rounded-full border border-zinc-300 bg-white px-5 py-2.5 text-sm font-semibold text-zinc-700 transition hover:border-zinc-400 hover:bg-zinc-50"
-          >
+          <Link to="/app/plans" className={buttonClass('secondary')}>
             Cancel
           </Link>
-          <button
-            type="submit"
-            disabled={submitting}
-            className="inline-flex items-center gap-2 rounded-full bg-gradient-to-br from-amber-400 to-orange-600 px-6 py-2.5 text-sm font-semibold text-zinc-950 shadow-lg shadow-orange-600/20 transition hover:shadow-orange-500/40 hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-70"
-          >
+          <button type="submit" disabled={submitting} className={buttonClass('primary')}>
             {submitting ? (
               <>
                 <Spinner />
@@ -530,9 +521,9 @@ function TrainingContextSection({
 }) {
   const slots = WINDOW_SLOTS[planWindow];
   const textareaClass =
-    'mt-1.5 block w-full rounded-lg border border-zinc-300 bg-white px-3 py-2 text-sm text-zinc-900 placeholder-zinc-400 transition focus:border-amber-500 focus:outline-none focus:ring-2 focus:ring-amber-500/30';
+    'mt-1.5 block w-full rounded-xl border border-white/70 bg-white/70 px-3.5 py-2.5 text-sm text-zinc-900 placeholder:text-zinc-400 shadow-sm backdrop-blur transition focus:border-brand-400 focus:bg-white focus:outline-none focus:ring-2 focus:ring-brand-400/30';
   return (
-    <Section
+    <SectionCard
       title="Planned training in the lead-up"
       subtitle="Optional — what are you planning to do each day before the race? The AI will factor this into fatigue, carb loading, and pacing."
     >
@@ -569,78 +560,7 @@ function TrainingContextSection({
           />
         </div>
       </div>
-    </Section>
-  );
-}
-
-function Section({
-  title,
-  subtitle,
-  children,
-}: {
-  title: string;
-  subtitle?: string;
-  children: React.ReactNode;
-}) {
-  return (
-    <section className="rounded-sm border border-zinc-200 bg-white p-6">
-      <header className="mb-5">
-        <h2 className="text-base font-semibold text-zinc-900">{title}</h2>
-        {subtitle && <p className="mt-1 text-sm text-zinc-500">{subtitle}</p>}
-      </header>
-      {children}
-    </section>
-  );
-}
-
-function Field({
-  label,
-  hint,
-  htmlFor,
-  className,
-  required,
-  children,
-}: {
-  label: string;
-  hint?: string;
-  htmlFor?: string;
-  className?: string;
-  required?: boolean;
-  children: React.ReactNode;
-}) {
-  return (
-    <div className={className}>
-      <label htmlFor={htmlFor} className="block text-sm font-medium text-zinc-700">
-        {label}
-        {required && <span className="text-amber-600"> *</span>}
-      </label>
-      <div className="mt-1.5">{children}</div>
-      {hint && <p className="mt-1.5 text-xs text-zinc-500">{hint}</p>}
-    </div>
-  );
-}
-
-function ChipButton({
-  active,
-  onClick,
-  children,
-}: {
-  active: boolean;
-  onClick: () => void;
-  children: React.ReactNode;
-}) {
-  return (
-    <button
-      type="button"
-      onClick={onClick}
-      className={`rounded-full px-4 py-1.5 text-sm font-medium transition ${
-        active
-          ? 'bg-amber-500 text-zinc-950 shadow-sm'
-          : 'border border-zinc-300 bg-white text-zinc-700 hover:border-zinc-400 hover:bg-zinc-50'
-      }`}
-    >
-      {children}
-    </button>
+    </SectionCard>
   );
 }
 
@@ -657,7 +577,7 @@ function WeatherCard({
 
   if (isLoading) {
     return (
-      <div className="rounded-sm border border-zinc-200 bg-zinc-50 px-4 py-3 text-sm text-zinc-500">
+      <div className="rounded-2xl bg-white/55 px-4 py-3 text-sm text-zinc-500 ring-1 ring-white/60">
         Looking up forecast…
       </div>
     );
@@ -668,7 +588,7 @@ function WeatherCard({
   if (data.kind === 'out_of_range') {
     if (data.reason === 'past') return null;
     return (
-      <div className="rounded-sm border border-zinc-200 bg-zinc-50 px-4 py-3 text-sm text-zinc-600">
+      <div className="rounded-2xl bg-white/55 px-4 py-3 text-sm text-zinc-600 ring-1 ring-white/60">
         <span className="font-medium text-zinc-700">Forecast available closer to race day.</span>{' '}
         Race is {data.daysAway} days out — we'll fill this in nearer the date.
       </div>
@@ -683,8 +603,8 @@ function WeatherCard({
   }).format(new Date(f.date));
 
   return (
-    <div className="rounded-sm border border-amber-200 bg-amber-50/60 px-4 py-3">
-      <p className="text-xs font-semibold uppercase tracking-wider text-amber-700">
+    <div className="rounded-2xl bg-brand-400/10 px-4 py-3 ring-1 ring-brand-300/40">
+      <p className="text-xs font-semibold uppercase tracking-wider text-brand-700">
         Forecast · {formattedDate}
       </p>
       <p className="mt-1 text-sm text-zinc-800">

@@ -61,6 +61,14 @@
 
 - **Free-text "anything else" field** (2026-06-04) in the "Planned training in the lead-up" section of [src/pages/NewPlan.tsx](src/pages/NewPlan.tsx). New `additionalNotes` form field + textarea (under the per-day training slots) for logistics/context the AI should account for — "driving 8h to the event", wake/breakfast times, venue/en-route food, dietary constraints, etc. Sent in the generate payload as `additionalNotes: string | null` (trimmed, optional-chained against stale state like `trainingNotes`). BE injects it into the Claude prompt — see [fuelplan-be/WIP.md](../fuelplan-be/WIP.md).
 
+- **Full UI overhaul → lime/glass dashboard** (2026-06-04). Reskinned the whole app to a "frosted glass on a soft gradient" look (blend of the Rexora + OpsPulse references): lime-green primary, amber as the warm "fuel" secondary, top **pill nav** (replaced the dark left sidebar).
+  - **Tokens** ([src/index.css](src/index.css)): Tailwind v4 `@theme` defines `brand-50..700` (lime) + `fuel-300..600` (amber); `.app-backdrop` (gradient-orb page bg), `.glass`, `animate-pop-in`. Retune the whole accent here.
+  - **UI kit** ([src/components/ui.tsx](src/components/ui.tsx)) — the new shared layer, import everything from here: `glass()`, `Card`, `SectionCard`, `IconBadge`, `Button`/`buttonClass`, `Pill`, `StatusPill`, `DeltaBadge`, `StatCard`, `Ring`, `MicroBars`, `SegmentedBar`, `inputClass`, `Field`, `ChipButton`. Consolidates the previously-duplicated `Section`/`Field`/`ChipButton`/`inputClass` from NewPlan & ProfileEdit. (Has an `eslint-disable react-refresh/only-export-components` — intentional: helpers ship next to components.)
+  - **Shell** ([src/components/AppLayout.tsx](src/components/AppLayout.tsx)): glass top bar, lime active pills, profile chip + sign-out, **New plan** as the primary CTA, mobile scrollable pill row.
+  - **Pages**: Dashboard rebuilt (stat cards from real data + getting-started ring + recent-plans list); PlanView surfaces glassed; TrainingLoadPanel converted dark→light glass (rings lime/emerald, build gauge, daily bars lime); NewPlan now uses the kit; PlanDays accents → lime (structure) / `fuel-*` (carbs). Plans, Profile, ProfileEdit, Subscription, Settings, Landing, Login, SignUp converted (Landing/auth = palette swap, kept dark).
+  - Verified: `tsc -b` + `vite build` + eslint all clean.
+  - ⚠️ **`npx tsc --noEmit` does NOT typecheck app sources here** (project-references setup) — it silently passes. Use **`npx tsc -b`** or `npm run build` for the real check.
+
 Nothing committed yet — slices are ready to commit when you want them.
 
 ## Next up

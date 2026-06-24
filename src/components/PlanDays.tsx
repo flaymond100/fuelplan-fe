@@ -136,7 +136,7 @@ export default function PlanDays({ plan }: Props) {
             onClick={() => setActive(i)}
             className={`rounded-t-lg border border-b-0 px-4 py-2 text-sm font-semibold transition ${
               i === active
-                ? 'border-zinc-200 bg-white text-amber-500'
+                ? 'border-zinc-200 bg-white text-brand-700'
                 : 'border-transparent bg-zinc-50 text-zinc-500 hover:text-zinc-700'
             }`}
           >
@@ -171,7 +171,7 @@ export default function PlanDays({ plan }: Props) {
                   <li key={i} className="relative mb-4 last:mb-0">
                     <span
                       className={`absolute -left-[27px] top-1 h-3 w-3 rounded-full border-2 border-white ${
-                        isStart ? 'bg-rose-500' : 'bg-amber-400'
+                        isStart ? 'bg-rose-500' : 'bg-brand-400'
                       }`}
                     />
                     <p className="text-[11px] font-bold uppercase tracking-wide text-zinc-400">
@@ -202,7 +202,7 @@ export default function PlanDays({ plan }: Props) {
                       </p>
                     </div>
                     {it.carbsG > 0 && (
-                      <span className="whitespace-nowrap rounded-full bg-amber-50 px-2.5 py-1 text-xs font-bold text-amber-600">
+                      <span className="whitespace-nowrap rounded-full bg-fuel-400/15 px-2.5 py-1 text-xs font-bold text-fuel-600">
                         {it.carbsG}g carbs
                       </span>
                     )}
@@ -210,7 +210,7 @@ export default function PlanDays({ plan }: Props) {
                   <p className="mt-2 text-sm text-zinc-600">{it.what}</p>
                   {nutrientLine(it) && <p className="mt-1 text-xs text-zinc-400">{nutrientLine(it)}</p>}
                   {it.notes && (
-                    <p className="mt-2 border-t border-zinc-200 pt-2 text-xs italic text-amber-600">{it.notes}</p>
+                    <p className="mt-2 border-t border-zinc-200 pt-2 text-xs italic text-brand-700">{it.notes}</p>
                   )}
                 </div>
               ))}
@@ -226,7 +226,7 @@ export default function PlanDays({ plan }: Props) {
                 <div key={i} className="rounded-xl border border-zinc-200 bg-zinc-50 p-3.5">
                   <p className="text-sm font-bold text-zinc-900">{it.label}</p>
                   <p className="mt-0.5 text-xs text-zinc-500">{it.detail ?? it.what}</p>
-                  <p className="mt-1.5 text-xs font-semibold text-amber-600">
+                  <p className="mt-1.5 text-xs font-semibold text-brand-700">
                     {itemTime(plan.race_date, plan.start_time, it.offsetMin, it.label)}
                   </p>
                 </div>
@@ -241,7 +241,7 @@ export default function PlanDays({ plan }: Props) {
             <div className="overflow-hidden rounded-xl border border-zinc-200">
               <table className="w-full text-sm">
                 <thead>
-                  <tr className="bg-amber-50 text-left text-[11px] uppercase tracking-wide text-amber-700">
+                  <tr className="bg-fuel-400/10 text-left text-[11px] uppercase tracking-wide text-fuel-600">
                     <th className="px-3 py-2 font-semibold">Time</th>
                     <th className="px-3 py-2 font-semibold">Item</th>
                     <th className="px-3 py-2 font-semibold">Carbs</th>
@@ -255,7 +255,7 @@ export default function PlanDays({ plan }: Props) {
                         {itemTime(plan.race_date, plan.start_time, it.offsetMin, it.label)}
                       </td>
                       <td className="px-3 py-2 text-zinc-600">{it.what}</td>
-                      <td className="px-3 py-2 font-bold text-amber-600">{it.carbsG}g</td>
+                      <td className="px-3 py-2 font-bold text-fuel-600">{it.carbsG}g</td>
                       <td className="px-3 py-2 text-zinc-500">{it.notes ?? it.detail ?? ''}</td>
                     </tr>
                   ))}

@@ -47,15 +47,15 @@ export default function Login() {
   }
 
   return (
-    <div className="min-h-screen bg-zinc-950 text-zinc-100 antialiased selection:bg-amber-500/30 selection:text-amber-100">
+    <div className="min-h-screen bg-zinc-950 text-zinc-100 antialiased selection:bg-brand-500/30 selection:text-brand-100">
       <div className="pointer-events-none absolute inset-x-0 top-0 -z-0 h-[640px] overflow-hidden">
-        <div className="absolute left-1/2 top-[-120px] h-[520px] w-[820px] -translate-x-1/2 rounded-full bg-gradient-to-br from-amber-500/25 via-orange-600/15 to-rose-600/10 blur-3xl" />
+        <div className="absolute left-1/2 top-[-120px] h-[520px] w-[820px] -translate-x-1/2 rounded-full bg-linear-to-br from-brand-500/25 via-brand-600/15 to-rose-600/10 blur-3xl" />
       </div>
 
       <div className="relative z-10 mx-auto grid min-h-screen max-w-6xl grid-cols-1 lg:grid-cols-2">
         <aside className="hidden flex-col justify-between p-12 lg:flex">
           <Link to="/" className="flex items-center gap-2 text-lg font-semibold tracking-tight">
-            <span className="grid h-8 w-8 place-items-center rounded-lg bg-gradient-to-br from-amber-400 to-orange-600 text-zinc-950 shadow-lg shadow-amber-500/20">
+            <span className="grid h-8 w-8 place-items-center rounded-lg bg-linear-to-br from-brand-300 to-brand-600 text-zinc-950 shadow-lg shadow-brand-500/30">
               <svg viewBox="0 0 24 24" fill="none" className="h-5 w-5" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                 <path d="M13 2 4 14h7l-1 8 9-12h-7l1-8Z" />
               </svg>
@@ -66,7 +66,7 @@ export default function Login() {
           <div className="max-w-md">
             <h2 className="text-4xl font-bold leading-tight tracking-tight">
               Welcome{' '}
-              <span className="bg-gradient-to-br from-amber-300 via-orange-400 to-rose-500 bg-clip-text text-transparent">
+              <span className="bg-linear-to-br from-brand-300 via-brand-400 to-brand-600 bg-clip-text text-transparent">
                 back
               </span>
               .
@@ -87,7 +87,7 @@ export default function Login() {
 
         <main className="flex flex-col px-6 py-10 sm:px-12 lg:py-16">
           <Link to="/" className="mb-10 flex items-center gap-2 text-lg font-semibold tracking-tight lg:hidden">
-            <span className="grid h-8 w-8 place-items-center rounded-lg bg-gradient-to-br from-amber-400 to-orange-600 text-zinc-950 shadow-lg shadow-amber-500/20">
+            <span className="grid h-8 w-8 place-items-center rounded-lg bg-linear-to-br from-brand-300 to-brand-600 text-zinc-950 shadow-lg shadow-brand-500/30">
               <svg viewBox="0 0 24 24" fill="none" className="h-5 w-5" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                 <path d="M13 2 4 14h7l-1 8 9-12h-7l1-8Z" />
               </svg>
@@ -99,7 +99,7 @@ export default function Login() {
             <h1 className="text-3xl font-bold tracking-tight md:text-4xl">Sign in</h1>
             <p className="mt-3 text-zinc-400">
               New here?{' '}
-              <Link to="/signup" className="font-medium text-amber-400 transition hover:text-amber-300">
+              <Link to="/signup" className="font-medium text-brand-400 transition hover:text-brand-300">
                 Create an account
               </Link>
             </p>
@@ -132,7 +132,7 @@ export default function Login() {
                   required
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  className="mt-1.5 block w-full rounded-sm border border-zinc-800 bg-zinc-900 px-4 py-3 text-zinc-100 placeholder-zinc-500 transition focus:border-amber-500/60 focus:bg-zinc-900 focus:outline-none focus:ring-2 focus:ring-amber-500/30"
+                  className="mt-1.5 block w-full rounded-sm border border-zinc-800 bg-zinc-900 px-4 py-3 text-zinc-100 placeholder-zinc-500 transition focus:border-brand-500/60 focus:bg-zinc-900 focus:outline-none focus:ring-2 focus:ring-brand-500/30"
                   placeholder="you@example.com"
                 />
               </div>
@@ -142,7 +142,7 @@ export default function Login() {
                   <label htmlFor="password" className="block text-sm font-medium text-zinc-300">
                     Password
                   </label>
-                  <Link to="/forgot-password" className="text-xs font-medium text-zinc-400 transition hover:text-amber-300">
+                  <Link to="/forgot-password" className="text-xs font-medium text-zinc-400 transition hover:text-brand-300">
                     Forgot password?
                   </Link>
                 </div>
@@ -154,7 +154,7 @@ export default function Login() {
                     required
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
-                    className="block w-full rounded-sm border border-zinc-800 bg-zinc-900 px-4 py-3 pr-12 text-zinc-100 placeholder-zinc-500 transition focus:border-amber-500/60 focus:outline-none focus:ring-2 focus:ring-amber-500/30"
+                    className="block w-full rounded-sm border border-zinc-800 bg-zinc-900 px-4 py-3 pr-12 text-zinc-100 placeholder-zinc-500 transition focus:border-brand-500/60 focus:outline-none focus:ring-2 focus:ring-brand-500/30"
                     placeholder="Your password"
                   />
                   <button
@@ -180,7 +180,7 @@ export default function Login() {
               <button
                 type="submit"
                 disabled={status.kind === 'submitting'}
-                className="group inline-flex w-full items-center justify-center gap-2 rounded-sm bg-gradient-to-br from-amber-400 to-orange-600 px-5 py-3 text-base font-semibold text-zinc-950 shadow-lg shadow-orange-600/20 transition hover:shadow-orange-500/40 hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-70"
+                className="group inline-flex w-full items-center justify-center gap-2 rounded-sm bg-brand-400 px-5 py-3 text-base font-semibold text-zinc-950 shadow-lg shadow-brand-500/30 transition hover:shadow-brand-400/50 hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-70"
               >
                 {status.kind === 'submitting' ? (
                   <>
@@ -207,7 +207,7 @@ export default function Login() {
 function Bullet({ children }: { children: React.ReactNode }) {
   return (
     <li className="flex items-start gap-3">
-      <span className="mt-0.5 grid h-5 w-5 flex-shrink-0 place-items-center rounded-full bg-amber-500/15 text-amber-400">
+      <span className="mt-0.5 grid h-5 w-5 flex-shrink-0 place-items-center rounded-full bg-brand-500/15 text-brand-400">
         <svg viewBox="0 0 20 20" fill="currentColor" className="h-3 w-3">
           <path fillRule="evenodd" d="M16.704 4.153a.75.75 0 0 1 .143 1.052l-8 10.5a.75.75 0 0 1-1.127.075l-4.5-4.5a.75.75 0 0 1 1.06-1.06l3.894 3.893 7.48-9.817a.75.75 0 0 1 1.05-.143Z" clipRule="evenodd" />
         </svg>
